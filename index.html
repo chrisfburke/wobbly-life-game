@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wobbly Life: Island Adventure!</title>
+    <style>
+        /* Modern, fun gaming theme using bright Wobbly Life colors */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(100px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            border: 2px solid #4a90e2;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #f1c40f;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 2.5rem;
+            margin-top: 0;
+        }
+
+        .stats-panel {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .wobbly-bucks {
+            color: #2ecc71;
+        }
+
+        #story-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            min-height: 80px;
+        }
+
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .choice-btn {
+            background-color: #e67e22;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .choice-btn:hover {
+            background-color: #d35400;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Dynamic Product Grid Styles */
+        .shop-container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .shop-title {
+            color: #f1c40f;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .shop-subtitle {
+            color: #bdc3c7;
+            margin-bottom: 20px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333333;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .product-icon {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+        }
+
+        .product-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 10px 0 5px 0;
+            color: #2c3e50;
+        }
+
+        .product-price {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .amazon-btn {
+            background-color: #ff9900;
+            color: #111111;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .amazon-btn:hover {
+            background-color: #e68a00;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>Wobbly Life Simulator</h1>
+        
+        <div class="stats-panel">
+            <div>📍 Location: <span id="location-display">Wobbly Street</span></div>
+            <div>💰 Cash: <span id="cash-display" class="wobbly-bucks">$0</span></div>
+        </div>
+
+        <p id="story-text">Loading your Wobbly Life...</p>
+
+        <div id="choices-box" class="btn-container">
+            </div>
+    </div>
+
+    <div class="shop-container">
+        <h2 class="shop-title">Get the Real Life Wobbly Gear!</h2>
+        <p class="shop-subtitle">Items match your current in-game choice or level.</p>
+        
+        <div id="product-grid" class="product-grid">
+            </div>
+    </div>
+
+    <script>
+        // GAME STATE DATA (Tracking stats)
+        let cash = 0;
+        let currentScene = "start";
+
+        // 1. THE GAME SCRIPT DIRECTORY (All story layers are stored here)
+        const storyData = {
+            start: {
+                text: "You wake up on Wobbly Island feeling incredibly floppy. Grandma Wobbly tells you it's time to get a job and earn some Wobbly Bucks! Where do you want to look first?",
+                location: "Grandma's House",
+                cashGained: 0,
+                choices: [
+                    { text: "🍕 Go to the Pizza Shop", nextScene: "pizzaJob" },
+                    { text: "🚜 Head to the Farm", nextScene: "farmJob" },
+                    { text: "🧪 Visit the Secret Alien Lab", nextScene: "secretLab" }
+                ]
+            },
+            pizzaJob: {
+                text: "You get hired as a delivery driver! You pile 5 pizzas onto a tiny scooter. As you speed down the hill, the physics engine goes crazy and you start wobbling dangerously. What do you do?",
+                location: "Pizza Town",
+                cashGained: 20,
+                choices: [
+                    { text: "🚲 Do a backflip off a ramp!", nextScene: "pizzaFlip" },
+                    { text: "🚗 Safely deliver them to the Mayor", nextScene: "pizzaSuccess" }
+                ]
+            },
+            pizzaFlip: {
+                text: "CRASH! You hit the ramp, the scooter spins 360 degrees, and all the pizzas splat directly onto a police car. You don't get paid, but you found a hidden present box in mid-air!",
+                location: "The Sky",
+                cashGained: 0,
+                choices: [
+                    { text: "🎁 Open the secret present!", nextScene: "unlockCostume" },
+                    { text: "🏠 Go back home to Grandma", nextScene: "start" }
+                ]
+            },
+            pizzaSuccess: {
+                text: "Success! The Mayor loves cold, wind-swept pizza. He hands you a massive tip of Wobbly Bucks! You can now afford a vehicle from the dealership.",
+                location: "Town Hall",
+                cashGained: 50,
+                choices: [
+                    { text: "🏎️ Buy the Hypercar", nextScene: "buyCar" },
+                    { text: "🚁 Buy the Wobbly Helicopter", nextScene: "buyHeli" }
+                ]
+            },
+            farmJob: {
+                text: "You arrive at the farm. The farmer tells you to round up the runaway rolling chickens and harvest giant turnips. You jump onto a giant tractor.",
+                location: "Wobbly Farm",
+                cashGained: 30,
+                choices: [
+                    { text: "🐓 Chase the radioactive golden chicken", nextScene: "goldenChicken" },
+                    { text: "Turnips? Smash them with the tractor!", nextScene: "turnipSmash" }
+                ]
+            },
+            goldenChicken: {
+                text: "The golden chicken flies onto a UFO that suddenly flies overhead! You get beamed up into space. You are officially an Astronaut Wobbly!",
+                location: "Outer Space",
+                cashGained: 100,
+                choices: [
+                    { text: "🎉 Claim your Ultimate Game Victory!", nextScene: "winEnding" }
+                ]
+            },
+            turnipSmash: {
+                text: "Boom! The turnips explode into pink juice, completely painting the farmer's barn. He kicks you out, but pays you a little for the comedy.",
+                location: "Messy Farm",
+                cashGained: 15,
+                choices: [
+                    { text: "🔄 Try another day", nextScene: "start" }
+                ]
+            },
+            secretLab: {
+                text: "You sneak past the guards into the laboratory. On the table sits a Glowing Green Artifact and a Portal Gun. Alarms start blaring!",
+                location: "Secret Lab",
+                cashGained: 0,
+                choices: [
+                    { text: "🔫 Shoot the Portal Gun at the wall", nextScene: "portalScene" },
+                    { text: "🏃 Grab the artifact and run!", nextScene: "chaseScene" }
+                ]
+            },
+            portalScene: {
+                text: "The portal opens and sucks you directly into the Arcade World! You're trapped inside a vintage gaming cabinet.",
+                location: "Arcade Dimension",
+                cashGained: 40,
+                choices: [
+                    { text: "🕹️ Play to escape!", nextScene: "winEnding" }
+                ]
+            },
+            chaseScene: {
+                text: "The lab guards chase you on jelly-legs. You trip over your own wobbly feet and bounce down the mountain like a beach ball, landing in a pile of money!",
+                location: "Mountain Base",
+                cashGained: 60,
+                choices: [
+                    { text: "🏎️ Take your money to buy a vehicle!", nextScene: "pizzaSuccess" }
+                ]
+            },
+            unlockCostume: {
+                text: "POP! You unlocked the legendary Jelly Bean Costume! You are now the funniest looking Wobbly on the server. Everyone follows you around.",
+                location: "Wobbly Square",
+                cashGained: 25,
+                choices: [
+                    { text: "👑 Celebrate your new style!", nextScene: "winEnding" }
+                ]
+            },
+            buyCar: {
+                text: "You jump into your neon-blue hypercar. You take a sharp turn at 200mph, fly off the cliff side, and launch directly over the volcano! Best day ever.",
+                location: "The Volcano",
+                cashGained: 0,
+                choices: [
+                    { text: "🔥 Finish in style!", nextScene: "winEnding" }
+                ]
+            },
+            buyHeli: {
+                text: "You fly high above the island, looking down at all the tiny wobbling players. You decide to try dropping a giant couch onto the mountain top. You have achieved peak freedom!",
+                location: "Clouds",
+                cashGained: 0,
+                choices: [
+                    { text: "🚁 Land and wrap up your summer!", nextScene: "winEnding" }
+                ]
+            },
+            winEnding: {
+                text: "GAME OVER! You have successfully mastered the chaos of Wobbly Island, earned plenty of cash, and created legendary memories. Click below to reset the server and start a brand-new day!",
+                location: "Wobbly Paradise",
+                cashGained: 0,
+                choices: [
+                    { text: "🔄 Restart the Wobbly Day!", nextScene: "start" }
+                ]
+            }
+        };
+
+        // 2. THE DYNAMIC CONTEXTUAL SHOP CATALOG (Maligned with the game levels)
+        const shopCatalog = {
+            start: [
+                { icon: "🎮", name: "Wobbly Life Game Key", price: "$19.99", link: "YOUR_AMAZON_LINK_1" },
+                { icon: "🧸", name: "Wobbly Plush Toy Set", price: "$14.95", link: "YOUR_AMAZON_LINK_2" }
+            ],
+            pizzaJob: [
+                { icon: "🍕", name: "Inflatable Pizza Float", price: "$12.99", link: "YOUR_AMAZON_LINK_3" },
+                { icon: "🛵", name: "Toy Delivery Scooter", price: "$8.99", link: "YOUR_AMAZON_LINK_4" }
+            ],
+            farmJob: [
+                { icon: "🚜", name: "John Deere Toy Tractor", price: "$24.99", link: "YOUR_AMAZON_LINK_5" },
+                { icon: "🐓", name: "Screaming Rubber Chicken", price: "$7.50", link: "YOUR_AMAZON_LINK_6" }
+            ],
+            secretLab: [
+                { icon: "👽", name: "Glowing Alien Slime", price: "$9.99", link: "YOUR_AMAZON_LINK_7" },
+                { icon: "🔫", name: "Sci-Fi Toy Laser Blaster", price: "$18.50", link: "YOUR_AMAZON_LINK_8" }
+            ],
+            winEnding: [
+                { icon: "🏆", name: "Gold Winner Medal", price: "$5.99", link: "YOUR_AMAZON_LINK_9" },
+                { icon: "👕", name: "Custom Wobbly Gamer Shirt", price: "$19.99", link: "YOUR_AMAZON_LINK_10" }
+            ]
+        };
+
+        // 3. THE CORE ENGINE FUNCTION (Updates the website display dynamically)
+        function renderScene(sceneId) {
+            const scene = storyData[sceneId];
+            if (!scene) return;
+
+            // Handle Restart Logic
+            if (sceneId === "start" && currentScene === "winEnding") {
+                cash = 0;
+            }
+
+            // Update parameters
+            currentScene = sceneId;
+            cash += scene.cashGained;
+
+            // Update UI
+            document.getElementById("story-text").textContent = scene.text;
+            document.getElementById("location-display").textContent = scene.location;
+            document.getElementById("cash-display").textContent = `$${cash}`;
+
+            // Build Action Buttons
+            const choicesBox = document.getElementById("choices-box");
+            choicesBox.innerHTML = ""; // Clear old buttons
+
+            scene.choices.forEach(choice => {
+                const button = document.createElement("button");
+                button.className = "choice-btn";
+                button.textContent = choice.text;
+                // Event listener to change scenes on click
+                button.onclick = () => renderScene(choice.nextScene);
+                choicesBox.appendChild(button);
+            });
+
+            // Update the Dynamic Affiliate Products
+            updateShop(sceneId);
+        }
+
+        // 4. THE SHOP DISPATCH FUNCTION (Changes catalog content contextually)
+        function updateShop(sceneId) {
+            const grid = document.getElementById("product-grid");
+            grid.innerHTML = ""; // Wipe previous grid cards
+
+            // Fallback to "start" items if a scene doesn't have custom products defined
+            const items = shopCatalog[sceneId] || shopCatalog["start"];
+
+            items.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "product-card";
+                card.innerHTML = `
+                    <div class="product-icon">${item.icon}</div>
+                    <div class="product-name">${item.name}</div>
+                    <div class="product-price">${item.price}</div>
+                    <a href="${item.link}" target="_blank" class="amazon-btn">View on Amazon →</a>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // KICK OFF THE GAME FOR THE FIRST TIME
+        renderScene("start");
+    </script>
+</body>
+</html>
