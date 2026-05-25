@@ -37,7 +37,9 @@
             position: relative;
         }
 
-        .active { display: block; }
+        .screen.active { 
+            display: block !important; 
+        }
 
         h1 {
             font-size: 2.8rem;
@@ -149,8 +151,8 @@
 
     <div id="screen-title" class="screen active">
         <h1>WOBBLY LIFE:<br>SPACE FLIGHT EDITION</h1>
-        <div style="font-size: 70px; margin: 15px; animation: float 2s infinite alternate;">🛸</div>
-        <p style="margin-bottom: 20px; font-size: 1.2rem;">Fly your ship using Keyboard Arrow Keys OR click & hold down anywhere on the map grid to steer!</p>
+        <div style="font-size: 70px; margin: 15px; text-shadow: 0 0 10px #ffdf00;">🛸</div>
+        <p style="margin-bottom: 20px; font-size: 1.2rem;">Fly your ship using Keyboard Arrow Keys OR click/drag your mouse or finger on the canvas map to steer!</p>
         <button class="btn" onclick="startGame(1)">1 Player Mode</button>
         <button class="btn" onclick="startGame(2)">2 Player Mode</button>
     </div>
@@ -164,14 +166,14 @@
         </div>
 
         <canvas id="worldCanvas" width="800" height="400"></canvas>
-        <div class="controls-hint">⌨️ Computer: Use Arrows/WASD. 📱 Mobile: Drag finger on map screen to pilot ship!</div>
+        <div class="controls-hint">⌨️ Computer: Use Arrows/WASD. 📱 Mobile: Hold down and drag inside the map to pilot ship!</div>
 
         <div id="job-popup">
             <h3>🖥️ Spaceship Central Job Board</h3>
             <p>Tap your mission to earn Wobbly Bucks:</p>
             <div class="job-grid">
                 <div id="btn-j1" class="job-card" onclick="launchMiniGame(1)">
-                    <span style="font-size:1.8rem;">🛹</span>
+                    <span style="font-size:1.8rem;">📋</span>
                     <h4>Hoverboard Delivery</h4>
                     <span id="st-j1" style="color:#00ffd8;">READY - $150</span>
                 </div>
@@ -244,15 +246,10 @@
         let isPointerDown = false;
         let pointerTargetX = 0;
         let pointerTargetY = 0;
+        let worldLoopId = null;
+        let gameLoopId = null;
 
         const worldCanvas = document.getElementById('worldCanvas');
         const worldCtx = worldCanvas.getContext('2d');
         const gameCanvas = document.getElementById('gameCanvas');
-        const gameCtx = gameCanvas.getContext('2d');
-
-        let p1Ship = { x: 100, y: 200, size: 25, color: '#ff5722', speed: 4 };
-        let p2Ship = { x: 100, y: 250, size: 25, color: '#e91e63', speed: 4 };
-        let computerTerminal = { x: 650, y: 170, width: 65, height: 65, pulse: 0 };
-
-        window.addEventListener('keydown', (e) => keys[e.key] = true);
-        window.addEventListener('keyup',
+        const gameCtx = gameCanvas.getContext('
