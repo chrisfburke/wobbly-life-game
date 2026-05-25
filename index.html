@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wobbly Life: Space Edition (Universal Flight Build)</title>
+    <title>Wobbly Life: Space Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,7 +11,7 @@
             padding: 0;
             font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
             user-select: none;
-            touch-action: none; /* Prevents mobile browser zooming or bouncing */
+            touch-action: none;
         }
 
         body {
@@ -48,25 +48,22 @@
 
         h2 { color: #00ffd8; margin-bottom: 15px; font-size: 2rem; }
 
-        /* 🔥 FIXED CLASS STYLING: Guarantees button visibility across all screens */
         .btn {
-            background: linear-gradient(to bottom, #ffeb3b, #ff9800) !important;
-            border: 3px solid #ffffff !important;
-            border-radius: 15px !important;
-            color: #000000 !important;
-            padding: 15px 32px !important;
-            font-size: 1.3rem !important;
-            font-weight: bold !important;
-            cursor: pointer !important;
-            box-shadow: 0 5px 0 #b36b00 !important;
-            margin: 12px !important;
-            display: inline-block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
+            background: linear-gradient(to bottom, #ffeb3b, #ff9800);
+            border: 3px solid #ffffff;
+            border-radius: 15px;
+            color: #000000;
+            padding: 15px 32px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #b36b00;
+            margin: 12px;
+            display: inline-block;
             transition: transform 0.1s;
         }
         .btn:hover { transform: translateY(-2px); }
-        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #b36b00 !important; }
+        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #b36b00; }
 
         .hud {
             display: flex;
@@ -81,7 +78,6 @@
 
         .wobbly-bucks { color: #4caf50; font-weight: bold; }
 
-        /* --- ARCADE WINDOW CANVAS --- */
         canvas {
             background: #04020a;
             border: 4px solid #1e173b;
@@ -89,7 +85,6 @@
             display: block;
             margin: 0 auto;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
-            cursor: crosshair;
             max-width: 100%;
             height: auto;
         }
@@ -104,7 +99,6 @@
             font-weight: bold;
         }
 
-        /* --- MENU POPUP --- */
         #job-popup {
             display: none;
             position: absolute;
@@ -135,7 +129,6 @@
         .job-card:hover:not(.done) { border-color: #ffdf00; background: rgba(255,255,255,0.1); }
         .job-card.done { border-color: #4caf50; opacity: 0.5; cursor: not-allowed; }
 
-        /* --- SHOP GRID --- */
         .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
         .shop-item { background: rgba(0,0,0,0.4); border: 2px solid #ff9800; border-radius: 15px; padding: 15px; }
         
@@ -157,7 +150,7 @@
     <div id="screen-title" class="screen active">
         <h1>WOBBLY LIFE:<br>SPACE FLIGHT EDITION</h1>
         <div style="font-size: 70px; margin: 15px; animation: float 2s infinite alternate;">🛸</div>
-        <p style="margin-bottom: 20px; font-size: 1.2rem;">Fly your ship using your Keyboard Arrow Keys OR by holding your finger/mouse on the map screen!</p>
+        <p style="margin-bottom: 20px; font-size: 1.2rem;">Fly your ship using Keyboard Arrow Keys OR click & hold down anywhere on the map grid to steer!</p>
         <button class="btn" onclick="startGame(1)">1 Player Mode</button>
         <button class="btn" onclick="startGame(2)">2 Player Mode</button>
     </div>
@@ -167,35 +160,99 @@
         <div class="hud">
             <div>💰 P1 Wallet: <span id="world-p1-bucks" class="wobbly-bucks">$0</span></div>
             <div id="world-p2-hud" style="display:none;">💰 P2 Wallet: <span id="world-p2-bucks" class="wobbly-bucks">$0</span></div>
-            <div style="color: #ffdf00;">👉 Guide ship to the <span style="color:#00ffd8; font-weight:bold;">FLASHING COMPUTER</span>!</div>
+            <div style="color: #ffdf00;">👉 Guide ship into the <span style="color:#00ffd8; font-weight:bold;">FLASHING COMPUTER</span>!</div>
         </div>
 
         <canvas id="worldCanvas" width="800" height="400"></canvas>
-        <div class="controls-hint">⌨️ Computer: Use Arrows/WASD. 📱 Mobile: Hold down anywhere on map to drive!</div>
+        <div class="controls-hint">⌨️ Computer: Use Arrows/WASD. 📱 Mobile: Drag finger on map screen to pilot ship!</div>
 
         <div id="job-popup">
             <h3>🖥️ Spaceship Central Job Board</h3>
             <p>Tap your mission to earn Wobbly Bucks:</p>
             <div class="job-grid">
-                <div id="btn-j1" class="job-card" onclick="launchMiniGame(1); event.stopPropagation();">
+                <div id="btn-j1" class="job-card" onclick="launchMiniGame(1)">
                     <span style="font-size:1.8rem;">🛹</span>
                     <h4>Hoverboard Delivery</h4>
                     <span id="st-j1" style="color:#00ffd8;">READY - $150</span>
                 </div>
-                <div id="btn-j2" class="job-card" onclick="launchMiniGame(2); event.stopPropagation();">
+                <div id="btn-j2" class="job-card" onclick="launchMiniGame(2)">
                     <span style="font-size:1.8rem;">☄️</span>
                     <h4>Asteroid Defense</h4>
                     <span id="st-j2" style="color:#00ffd8;">READY - $200</span>
                 </div>
-                <div id="btn-j3" class="job-card" onclick="launchMiniGame(3); event.stopPropagation();">
+                <div id="btn-j3" class="job-card" onclick="launchMiniGame(3)">
                     <span style="font-size:1.8rem;">🧼</span>
                     <h4>Slime Scrubbing</h4>
                     <span id="st-j3" style="color:#00ffd8;">READY - $160</span>
                 </div>
-                <div id="btn-j4" class="job-card" onclick="launchMiniGame(4); event.stopPropagation();">
+                <div id="btn-j4" class="job-card" onclick="launchMiniGame(4)">
                     <span style="font-size:1.8rem;">🍔</span>
                     <h4>Alien Burger Chef</h4>
                     <span id="st-j4" style="color:#00ffd8;">READY - $180</span>
                 </div>
             </div>
-            <button class="btn" style="background:#f44336; box-shadow: 0 5px 0 #b71c1c; margin-top: 15px;" onclick
+            <button class="btn" style="background:#f44336; box-shadow: 0 5px 0 #b71c1c; margin-top: 15px;" onclick="closeJobBoard()">Exit Computer</button>
+        </div>
+    </div>
+
+    <div id="screen-minigame" class="screen">
+        <h2 id="game-title">Job Active!</h2>
+        <div class="hud">
+            <div>⏱️ Time Left: <span id="game-timer" style="color:#ff5722; font-weight:bold;">0</span></div>
+            <div>Task Progress: <span id="game-score" style="color:#ffdf00; font-weight:bold;">0</span></div>
+        </div>
+
+        <div style="position: relative;">
+            <div id="freeze-ui" class="frozen-alert">🧊 SLIPPED! FROZEN FOR 5 SECONDS!</div>
+            <canvas id="gameCanvas" width="800" height="350"></canvas>
+        </div>
+        <div id="game-instructions" class="controls-hint">Controls loading...</div>
+    </div>
+
+    <div id="screen-gameover" class="screen">
+        <h1>🏆 BOARD COMPLETED! 🏆</h1>
+        <div style="font-size: 90px; margin: 10px;">🏆</div>
+        <h2 id="winner-text" style="color:#ffdf00;">Player 1 Wins the Trophy!</h2>
+        
+        <div class="hud" style="max-width: 400px; margin: 15px auto;">
+            <div>Player 1 Wallet: <span id="end-p1" class="wobbly-bucks">$0</span></div>
+            <div id="end-p2-wrap">Player 2 Wallet: <span id="end-p2" class="wobbly-bucks">$0</span></div>
+        </div>
+        <button class="btn" onclick="openShop()">Go to Rewards Shop 🛍️</button>
+    </div>
+
+    <div id="screen-shop" class="screen">
+        <h2>🛍️ Wobbly Outpost Rewards Shop</h2>
+        <div class="hud" style="max-width:300px; margin: 0 auto 15px auto;">
+            <div>Your Wallet: <span id="shop-cash" class="wobbly-bucks">$0</span></div>
+        </div>
+        <div class="shop-grid">
+            <div class="shop-item"><div>👽</div><h4>Alien Hat</h4><p>$50</p><button class="btn" onclick="buy(50)">Buy</button></div>
+            <div class="shop-item"><div>🔥</div><h4>Neon Thrusters</h4><p>$100</p><button class="btn" onclick="buy(100)">Buy</button></div>
+            <div class="shop-item"><div>👑</div><h4>Gold Suit</h4><p>$150</p><button class="btn" onclick="buy(150)">Buy</button></div>
+        </div>
+        <button class="btn" style="background:#2196f3;" onclick="resetAll()">Play Again 🔄</button>
+    </div>
+
+    <script>
+        let numPlayers = 1;
+        let p1Score = 0, p2Score = 0;
+        let currentActiveGame = 0;
+        let jobList = { 1: false, 2: false, 3: false, 4: false };
+        
+        let keys = {};
+        let isPointerDown = false;
+        let pointerTargetX = 0;
+        let pointerTargetY = 0;
+
+        const worldCanvas = document.getElementById('worldCanvas');
+        const worldCtx = worldCanvas.getContext('2d');
+        const gameCanvas = document.getElementById('gameCanvas');
+        const gameCtx = gameCanvas.getContext('2d');
+
+        let p1Ship = { x: 100, y: 200, size: 25, color: '#ff5722', speed: 4 };
+        let p2Ship = { x: 100, y: 250, size: 25, color: '#e91e63', speed: 4 };
+        let computerTerminal = { x: 650, y: 170, width: 65, height: 65, pulse: 0 };
+
+        window.addEventListener('keydown', (e) => keys[e.key] = true);
+        window.addEventListener('keyup',
