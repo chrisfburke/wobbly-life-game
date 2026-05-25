@@ -258,11 +258,9 @@
         let p2Ship = { x: 100, y: 250, size: 25, color: '#e91e63', speed: 4 };
         let computerTerminal = { x: 650, y: 170, width: 65, height: 65, pulse: 0 };
 
-        // 🚀 CRITICAL FIX: Bound system keystroke events directly to the whole page document layout to override window element focus slips
         document.addEventListener('keydown', (e) => keys[e.key] = true);
         document.addEventListener('keyup', (e) => keys[e.key] = false);
 
-        // Fixed parameter mappings eliminate browser variables data crashes
         function trackCanvasInput(canvas, e) {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -271,6 +269,7 @@
             pointerTargetY = (clientY - rect.top) * (canvas.height / rect.height);
         }
 
+        // 🚀 RESOLVED: Pointer tracking rules are restricted strictly to canvas layouts to protect button elements
         worldCanvas.addEventListener('mousedown', (e) => { isPointerDown = true; trackCanvasInput(worldCanvas, e); });
         worldCanvas.addEventListener('mousemove', (e) => { if(isPointerDown) trackCanvasInput(worldCanvas, e); });
         worldCanvas.addEventListener('mouseup', () => isPointerDown = false);
@@ -299,7 +298,7 @@
             p1Ship.x = 100; p1Ship.y = 200;
             p2Ship.x = 100; p2Ship.y = 250;
             isPointerDown = false;
-            keys = {}; // Hard resets initial inputs
+            keys = {}; 
             
             if(worldLoopId) cancelAnimationFrame(worldLoopId);
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
@@ -399,7 +398,7 @@
             p1Ship.x = 350; p1Ship.y = 200; 
             p2Ship.x = 350; p2Ship.y = 250;
             isPointerDown = false;
-            keys = {}; // Clear stuck loop key artifacts on exit
+            keys = {}; 
         }
 
         let gameTimer, gameTimeLeft = 0;
@@ -416,7 +415,7 @@
             currentActiveGame = id;
             miniScore = 0;
             isPointerDown = false;
-            keys = {}; // Hard wipe system indices before initialization loops
+            keys = {}; 
             showScreen('screen-minigame');
 
             if (id === 1) {
@@ -534,7 +533,7 @@
                                 asteroids.splice(i, 1);
                                 lasers.splice(j, 1);
                                 miniScore++;
-                                document.getElementById('game-score').innerText = `${miniScore} Asteroids Hit`;
+                                document.getElementById('game-score').innerText = `Asteroids Hit: ${miniScore}`;
                                 break;
                             }
                         }
@@ -652,7 +651,7 @@
             cardStatus.style.color = completedSuccessfully ? "#4caf50" : "#f44336";
             cardWrapper.classList.add('done');
 
-            // ✅ CRITICAL RE-REGISTRATION LOCK: Wipes internal keystroke structures to prevent floating ghost drift cycles
+            // ✅ HARD OVERRIDE: Wipes tracking vectors clean to guarantee arrow keys work immediately
             isPointerDown = false;
             keys = {}; 
 
