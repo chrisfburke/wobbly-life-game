@@ -11,7 +11,6 @@
             padding: 0;
             font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
             user-select: none;
-            touch-action: none;
         }
 
         body {
@@ -34,9 +33,9 @@
             border-radius: 25px;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
             text-align: center;
-            position: relative;
         }
 
+        /* Pure CSS display rules guarantee screens toggle instantly */
         .screen.active { 
             display: block !important; 
         }
@@ -51,21 +50,21 @@
         h2 { color: #00ffd8; margin-bottom: 15px; font-size: 2rem; }
 
         .btn {
-            background: linear-gradient(to bottom, #ffeb3b, #ff9800);
-            border: 3px solid #ffffff;
-            border-radius: 15px;
-            color: #000000;
-            padding: 15px 32px;
-            font-size: 1.3rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 5px 0 #b36b00;
-            margin: 12px;
-            display: inline-block;
+            background: linear-gradient(to bottom, #ffeb3b, #ff9800) !important;
+            border: 3px solid #ffffff !important;
+            border-radius: 15px !important;
+            color: #000000 !important;
+            padding: 15px 32px !important;
+            font-size: 1.3rem !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+            box-shadow: 0 5px 0 #b36b00 !important;
+            margin: 12px !important;
+            display: inline-block !important;
             transition: transform 0.1s;
         }
         .btn:hover { transform: translateY(-2px); }
-        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #b36b00; }
+        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #b36b00 !important; }
 
         .hud {
             display: flex;
@@ -86,7 +85,6 @@
             border-radius: 15px;
             display: block;
             margin: 0 auto;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
             max-width: 100%;
             height: auto;
         }
@@ -151,8 +149,8 @@
 
     <div id="screen-title" class="screen active">
         <h1>WOBBLY LIFE:<br>SPACE FLIGHT EDITION</h1>
-        <div style="font-size: 70px; margin: 15px; text-shadow: 0 0 10px #ffdf00;">🛸</div>
-        <p style="margin-bottom: 20px; font-size: 1.2rem;">Fly your ship using Keyboard Arrow Keys OR click/drag your mouse or finger on the canvas map to steer!</p>
+        <div style="font-size: 70px; margin: 15px;">🛸</div>
+        <p style="margin-bottom: 20px; font-size: 1.2rem;">Fly your ship using Keyboard Arrow Keys OR click/drag your mouse or finger on the map grid to steer!</p>
         <button class="btn" onclick="startGame(1)">1 Player Mode</button>
         <button class="btn" onclick="startGame(2)">2 Player Mode</button>
     </div>
@@ -166,7 +164,7 @@
         </div>
 
         <canvas id="worldCanvas" width="800" height="400"></canvas>
-        <div class="controls-hint">⌨️ Computer: Use Arrows/WASD. 📱 Mobile: Hold down and drag inside the map to pilot ship!</div>
+        <div class="controls-hint">⌨️ Computer: Use Arrows/WASD. 📱 Mobile: Drag finger on map screen to pilot ship!</div>
 
         <div id="job-popup">
             <h3>🖥️ Spaceship Central Job Board</h3>
@@ -252,4 +250,435 @@
         const worldCanvas = document.getElementById('worldCanvas');
         const worldCtx = worldCanvas.getContext('2d');
         const gameCanvas = document.getElementById('gameCanvas');
-        const gameCtx = gameCanvas.getContext('
+        const gameCtx = gameCanvas.getContext('2d');
+
+        let p1Ship = { x: 100, y: 200, size: 25, color: '#ff5722', speed: 4 };
+        let p2Ship = { x: 100, y: 250, size: 25, color: '#e91e63', speed: 4 };
+        let computerTerminal = { x: 650, y: 170, width: 65, height: 65, pulse: 0 };
+
+        window.addEventListener('keydown', (e) => keys[e.key] = true);
+        window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        function trackCanvasInput(canvas, e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            pointerTargetX = (clientX - rect.left) * (canvas.width / rect.width);
+            pointerTargetY = (clientY - rect.top) * (canvas.height / rect.height);
+        }
+
+        worldCanvas.addEventListener('mousedown', (e) => { isPointerDown = true; trackCanvasInput(worldCanvas, e); });
+        worldCanvas.addEventListener('mousemove', (e) => { if(isPointerDown) trackCanvasInput(worldCanvas, e); });
+        worldCanvas.addEventListener('mouseup', () => isPointerDown = false);
+        worldCanvas.addEventListener('mouseleave', () => isPointerDown = false);
+        worldCanvas.addEventListener('touchstart', (e) => { isPointerDown = true; trackCanvasInput(worldCanvas, e); });
+        worldCanvas.addEventListener('touchmove', (e) => { if(isPointerDown) trackCanvasInput(worldCanvas, e); });
+        worldCanvas.addEventListener('touchend', () => isPointerDown = false);
+
+        gameCanvas.addEventListener('mousedown', (e) => { isPointerDown = true; trackCanvasInput(gameCanvas, e); });
+        gameCanvas.addEventListener('mousemove', (e) => { if(isPointerDown) trackCanvasInput(gameCanvas, e); });
+        gameCanvas.addEventListener('mouseup', () => isPointerDown = false);
+        gameCanvas.addEventListener('mouseleave', () => isPointerDown = false);
+        gameCanvas.addEventListener('touchstart', (e) => { isPointerDown = true; trackCanvasInput(gameCanvas, e); });
+        gameCanvas.addEventListener('touchmove', (e) => { if(isPointerDown) trackCanvasInput(gameCanvas, e); });
+        gameCanvas.addEventListener('touchend', () => isPointerDown = false);
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function startGame(players) {
+            numPlayers = players;
+            p1Score = 0; p2Score = 0;
+            jobList = { 1: false, 2: false, 3: false, 4: false };
+            p1Ship.x = 100; p1Ship.y = 200;
+            p2Ship.x = 100; p2Ship.y = 250;
+            isPointerDown = false;
+            
+            if(worldLoopId) cancelAnimationFrame(worldLoopId);
+            if(gameLoopId) cancelAnimationFrame(gameLoopId);
+            
+            document.getElementById('world-p2-hud').style.display = (players === 2) ? 'block' : 'none';
+            document.getElementById('end-p2-wrap').style.display = (players === 2) ? 'block' : 'none';
+            
+            for(let i=1; i<=4; i++) {
+                document.getElementById(`btn-j${i}`).classList.remove('done');
+                document.getElementById(`st-j${i}`).style.color = "#00ffd8";
+            }
+            document.getElementById('st-j1').innerText = "READY - $150";
+            document.getElementById('st-j2').innerText = "READY - $200";
+            document.getElementById('st-j3').innerText = "READY - $160";
+            document.getElementById('st-j4').innerText = "READY - $180";
+
+            updateWallets();
+            showScreen('screen-world');
+            window.focus();
+            worldLoop();
+        }
+
+        function updateWallets() {
+            document.getElementById('world-p1-bucks').innerText = `$${p1Score}`;
+            document.getElementById('world-p2-bucks').innerText = `$${p2Score}`;
+        }
+
+        function worldLoop() {
+            if (document.getElementById('screen-world').classList.contains('active')) {
+                if (keys['ArrowUp'] && p1Ship.y > 0) p1Ship.y -= p1Ship.speed;
+                if (keys['ArrowDown'] && p1Ship.y < worldCanvas.height - p1Ship.size) p1Ship.y += p1Ship.speed;
+                if (keys['ArrowLeft'] && p1Ship.x > 0) p1Ship.x -= p1Ship.speed;
+                if (keys['ArrowRight'] && p1Ship.x < worldCanvas.width - p1Ship.size) p1Ship.x += p1Ship.speed;
+
+                if (numPlayers === 2) {
+                    if (keys['w'] && p2Ship.y > 0) p2Ship.y -= p2Ship.speed;
+                    if (keys['s'] && p2Ship.y < worldCanvas.height - p2Ship.size) p2Ship.y += p2Ship.speed;
+                    if (keys['a'] && p2Ship.x > 0) p2Ship.x -= p2Ship.speed;
+                    if (keys['d'] && p2Ship.x < worldCanvas.width - p2Ship.size) p2Ship.x += p2Ship.speed;
+                }
+
+                if (isPointerDown) {
+                    let dx = pointerTargetX - (p1Ship.x + p1Ship.size / 2);
+                    let dy = pointerTargetY - (p1Ship.y + p1Ship.size / 2);
+                    if (Math.abs(dx) > 5) p1Ship.x += Math.sign(dx) * p1Ship.speed;
+                    if (Math.abs(dy) > 5) p1Ship.y += Math.sign(dy) * p1Ship.speed;
+                }
+
+                worldCtx.fillStyle = '#05030d';
+                worldCtx.fillRect(0, 0, worldCanvas.width, worldCanvas.height);
+
+                worldCtx.fillStyle = '#ffffff';
+                for (let i = 0; i < 35; i++) {
+                    worldCtx.fillRect((i * 41) % worldCanvas.width, (i * 29) % worldCanvas.height, 2, 2);
+                }
+
+                computerTerminal.pulse += 0.1;
+                let glowRadius = Math.abs(Math.sin(computerTerminal.pulse)) * 14;
+                worldCtx.shadowBlur = glowRadius;
+                worldCtx.shadowColor = '#00ffd8';
+                worldCtx.fillStyle = '#00ffd8';
+                worldCtx.fillRect(computerTerminal.x, computerTerminal.y, computerTerminal.width, computerTerminal.height);
+                worldCtx.shadowBlur = 0; 
+                worldCtx.fillStyle = '#000000';
+                worldCtx.font = 'bold 13px Courier New';
+                worldCtx.fillText("COMPUTER", computerTerminal.x + 2, computerTerminal.y + 36);
+
+                worldCtx.fillStyle = p1Ship.color;
+                worldCtx.fillRect(p1Ship.x, p1Ship.y, p1Ship.size, p1Ship.size);
+                worldCtx.fillStyle = '#fff';
+                worldCtx.font = '11px sans-serif';
+                worldCtx.fillText("P1", p1Ship.x + 6, p1Ship.y + 17);
+
+                if (numPlayers === 2) {
+                    worldCtx.fillStyle = p2Ship.color;
+                    worldCtx.fillRect(p2Ship.x, p2Ship.y, p2Ship.size, p2Ship.size);
+                    worldCtx.fillStyle = '#fff';
+                    worldCtx.fillText("P2", p2Ship.x + 6, p2Ship.y + 17);
+                }
+
+                if (checkCollision(p1Ship, computerTerminal) || (numPlayers === 2 && checkCollision(p2Ship, computerTerminal))) {
+                    document.getElementById('job-popup').style.display = 'block';
+                }
+
+                worldLoopId = requestAnimationFrame(worldLoop);
+            }
+        }
+
+        function checkCollision(ship, rect) {
+            return ship.x < rect.x + rect.width &&
+                   ship.x + ship.size > rect.x &&
+                   ship.y < rect.y + rect.height &&
+                   ship.y + ship.size > rect.y;
+        }
+
+        function closeJobBoard() {
+            document.getElementById('job-popup').style.display = 'none';
+            p1Ship.x = 350; p1Ship.y = 200; 
+            p2Ship.x = 350; p2Ship.y = 250;
+            isPointerDown = false;
+            window.focus();
+        }
+
+        let gameTimer, gameTimeLeft = 0;
+        let miniScore = 0;
+        let luggageAngle = 0; 
+        let elementX = 400;
+        let asteroids = [], lasers = [];
+        let cleanPercentage = 0, isFrozen = false;
+        let itemsArr = [];
+
+        function launchMiniGame(id) {
+            if (jobList[id]) return; 
+            document.getElementById('job-popup').style.display = 'none';
+            currentActiveGame = id;
+            miniScore = 0;
+            isPointerDown = false;
+            showScreen('screen-minigame');
+
+            if (id === 1) {
+                document.getElementById('game-title').innerText = "🛹 Hoverboard Luggage Balancer";
+                document.getElementById('game-instructions').innerHTML = "⌨ Left/Right Arrows. 📱 Hold finger on Left/Right canvas window to balance!";
+                gameTimeLeft = 15; luggageAngle = 0;
+            } else if (id === 2) {
+                document.getElementById('game-title').innerText = "☄ Rocket Ship Asteroid Shooter";
+                document.getElementById('game-instructions').innerHTML = "⌨ Left/Right Arrows + Space to fire. 📱 Hold down to slide ship!";
+                gameTimeLeft = 15; elementX = 400; asteroids = []; lasers = [];
+            } else if (id === 3) {
+                document.getElementById('game-title').innerText = "🧼 Zero-Gravity Slime Scrubbing";
+                document.getElementById('game-instructions').innerHTML = "⌨ Tap Left/Right Arrows. 📱 Drag finger directly across the screen!";
+                gameTimeLeft = 15; cleanPercentage = 0; isFrozen = false;
+                document.getElementById('freeze-ui').style.display = 'none';
+                itemsArr = [];
+                for(let i=0; i<8; i++) itemsArr.push({x: 100 + i*80, y: 100 + Math.random()*120, size: 25, clean: false});
+            } else if (id === 4) {
+                document.getElementById('game-title').innerText = "🍔 Zero-G Alien Burger Chef";
+                document.getElementById('game-instructions').innerHTML = "⌨ Use Arrow Keys. 📱 Slide tray to grab the floating buns!";
+                gameTimeLeft = 20; elementX = 400; itemsArr = [];
+            }
+
+            document.getElementById('game-timer').innerText = gameTimeLeft;
+            document.getElementById('game-score').innerText = miniScore;
+            window.focus();
+
+            if(gameTimer) clearInterval(gameTimer);
+            gameTimer = setInterval(() => {
+                gameTimeLeft--;
+                document.getElementById('game-timer').innerText = gameTimeLeft;
+                if (gameTimeLeft <= 0) endMiniGame(true);
+            }, 1000);
+
+            miniGameLoop();
+        }
+
+        function miniGameLoop() {
+            if (document.getElementById('screen-minigame').classList.contains('active')) {
+                gameCtx.fillStyle = '#070512';
+                gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+                if (currentActiveGame === 1) {
+                    if (keys['ArrowLeft']) luggageAngle -= 0.025;
+                    if (keys['ArrowRight']) luggageAngle += 0.025;
+                    
+                    if (isPointerDown) {
+                        if (pointerTargetX < gameCanvas.width / 2) luggageAngle -= 0.025;
+                        else luggageAngle += 0.025;
+                    }
+                    
+                    luggageAngle += (Math.random() - 0.5) * 0.035; 
+
+                    gameCtx.fillStyle = '#444';
+                    gameCtx.fillRect(0, 300, gameCanvas.width, 50);
+
+                    gameCtx.save();
+                    gameCtx.translate(400, 300);
+                    gameCtx.rotate(luggageAngle);
+                    gameCtx.fillStyle = '#00ffd8'; 
+                    gameCtx.fillRect(-50, -10, 100, 12);
+                    gameCtx.fillStyle = '#ff9800'; 
+                    gameCtx.fillRect(-25, -55, 50, 45);
+                    gameCtx.fillStyle = '#e91e63';
+                    gameCtx.fillRect(-18, -100, 36, 45);
+                    gameCtx.fillStyle = '#ffeb3b';
+                    gameCtx.fillRect(-30, -145, 60, 45);
+                    gameCtx.restore();
+
+                    if (Math.abs(luggageAngle) > 0.65) {
+                        gameCtx.fillStyle = '#ff3333';
+                        gameCtx.font = 'bold 28px Arial';
+                        gameCtx.fillText("💥 LUGGAGE TOPPLED INTO CONFETTI!", 160, 140);
+                        setTimeout(() => endMiniGame(false), 1500);
+                        return;
+                    }
+                    miniScore++;
+                    document.getElementById('game-score').innerText = `Balance Score: ${miniScore}`;
+                }
+
+                else if (currentActiveGame === 2) {
+                    if (keys['ArrowLeft'] && elementX > 20) elementX -= 6;
+                    if (keys['ArrowRight'] && elementX < gameCanvas.width - 50) elementX += 6;
+                    if (keys[' ']) {
+                        keys[' '] = false; 
+                        lasers.push({ x: elementX + 18, y: 280, speed: 8 });
+                    }
+
+                    if (isPointerDown) {
+                        let targetX = pointerTargetX - 20;
+                        elementX += (targetX - elementX) * 0.1; 
+                        if (Math.random() < 0.15) lasers.push({ x: elementX + 18, y: 280, speed: 8 });
+                    }
+
+                    if (Math.random() < 0.05) {
+                        asteroids.push({ x: Math.random() * (gameCanvas.width - 40), y: 0, size: 22, speed: 3.5 });
+                    }
+
+                    gameCtx.fillStyle = '#ffeb3b';
+                    for (let i = lasers.length - 1; i >= 0; i--) {
+                        lasers[i].y -= lasers[i].speed;
+                        gameCtx.fillRect(lasers[i].x, lasers[i].y, 5, 14);
+                        if (lasers[i].y < 0) lasers.splice(i, 1);
+                    }
+
+                    gameCtx.fillStyle = '#a1887f';
+                    for (let i = asteroids.length - 1; i >= 0; i--) {
+                        asteroids[i].y += asteroids[i].speed;
+                        gameCtx.beginPath();
+                        gameCtx.arc(asteroids[i].x, asteroids[i].y, asteroids[i].size, 0, Math.PI * 2);
+                        gameCtx.fill();
+
+                        for (let j = lasers.length - 1; j >= 0; j--) {
+                            let dist = Math.hypot(lasers[j].x - asteroids[i].x, lasers[j].y - asteroids[i].y);
+                            if (dist < asteroids[i].size + 5) {
+                                asteroids.splice(i, 1);
+                                lasers.splice(j, 1);
+                                miniScore++;
+                                document.getElementById('game-score').innerText = `${miniScore} Asteroids Hit`;
+                                break;
+                            }
+                        }
+                        if (asteroids[i] && asteroids[i].y > gameCanvas.height) asteroids.splice(i, 1);
+                    }
+
+                    gameCtx.fillStyle = '#00ffd8';
+                    gameCtx.fillRect(elementX, 290, 40, 25);
+                }
+
+                else if (currentActiveGame === 3) {
+                    if (keys['ArrowLeft'] && elementX > 30) elementX -= 8;
+                    if (keys['ArrowRight'] && elementX < gameCanvas.width - 30) elementX += 8;
+                    if (isPointerDown) elementX += (pointerTargetX - elementX) * 0.15;
+
+                    if (!isFrozen) {
+                        itemsArr.forEach(blob => {
+                            if (!blob.clean && Math.abs(elementX - blob.x) < blob.size + 15) {
+                                if (Math.random() < 0.015) {
+                                    isFrozen = true;
+                                    document.getElementById('freeze-ui').style.display = 'block';
+                                    setTimeout(() => {
+                                        isFrozen = false;
+                                        document.getElementById('freeze-ui').style.display = 'none';
+                                    }, 4000);
+                                } else {
+                                    blob.clean = true;
+                                    miniScore += 25;
+                                }
+                            }
+                        });
+                    }
+
+                    itemsArr.forEach(blob => {
+                        gameCtx.fillStyle = blob.clean ? '#1b163a' : '#4caf50';
+                        gameCtx.beginPath();
+                        gameCtx.arc(blob.x, blob.y, blob.size, 0, Math.PI*2);
+                        gameCtx.fill();
+                    });
+
+                    gameCtx.fillStyle = isFrozen ? '#64b5f6' : '#ffeb3b';
+                    gameCtx.fillRect(elementX - 25, 260, 50, 20);
+                    
+                    let remaining = itemsArr.filter(b => !b.clean).length;
+                    cleanPercentage = Math.round(((8 - remaining) / 8) * 100);
+                    document.getElementById('game-score').innerText = `Clean Progress: ${cleanPercentage}%`;
+
+                    if (cleanPercentage >= 100) {
+                        setTimeout(() => endMiniGame(true), 800);
+                        return;
+                    }
+                }
+
+                else if (currentActiveGame === 4) {
+                    if (keys['ArrowLeft'] && elementX > 30) elementX -= 7;
+                    if (keys['ArrowRight'] && elementX < gameCanvas.width - 30) elementX += 7;
+                    if (isPointerDown) elementX += (pointerTargetX - elementX) * 0.15;
+
+                    if (Math.random() < 0.03) {
+                        let randType = Math.random() < 0.4 ? 'pickle' : 'bun';
+                        itemsArr.push({x: Math.random()*(gameCanvas.width-40), y: 0, type: randType, size: 18});
+                    }
+
+                    for (let i = itemsArr.length - 1; i >= 0; i--) {
+                        itemsArr[i].y += 3.5; 
+
+                        if (itemsArr[i].type === 'pickle') {
+                            gameCtx.fillStyle = '#8bc34a'; 
+                            gameCtx.fillRect(itemsArr[i].x, itemsArr[i].y, 25, 12);
+                        } else {
+                            gameCtx.fillStyle = '#ffb74d'; 
+                            gameCtx.beginPath();
+                            gameCtx.arc(itemsArr[i].x, itemsArr[i].y, itemsArr[i].size, 0, Math.PI, true);
+                            gameCtx.fill();
+                        }
+
+                        if (itemsArr[i].y >= 270 && itemsArr[i].y <= 310 && Math.abs(itemsArr[i].x - elementX) < 35) {
+                            if (itemsArr[i].type === 'pickle') {
+                                miniScore = Math.max(0, miniScore - 30);
+                            } else {
+                                miniScore += 50;
+                            }
+                            itemsArr.splice(i, 1);
+                            document.getElementById('game-score').innerText = `Chef Score: ${miniScore}`;
+                        } else if (itemsArr[i] && itemsArr[i].y > gameCanvas.height) {
+                            itemsArr.splice(i, 1);
+                        }
+                    }
+
+                    gameCtx.fillStyle = '#e0e0e0';
+                    gameCtx.fillRect(elementX - 30, 290, 60, 10);
+                }
+
+                gameLoopId = requestAnimationFrame(miniGameLoop);
+            }
+        }
+
+        function endMiniGame(completedSuccessfully) {
+            clearInterval(gameTimer);
+            let prizeMoney = 0;
+
+            if (completedSuccessfully) {
+                if (currentActiveGame === 1) prizeMoney = 150;
+                if (currentActiveGame === 2) prizeMoney = 200;
+                if (currentActiveGame === 3) prizeMoney = 160;
+                if (currentActiveGame === 4) prizeMoney = 180;
+            }
+
+            p1Score += prizeMoney; 
+            jobList[currentActiveGame] = true;
+
+            let cardStatus = document.getElementById(`st-j${currentActiveGame}`);
+            let cardWrapper = document.getElementById(`btn-j${currentActiveGame}`);
+            cardStatus.innerText = completedSuccessfully ? "COMPLETED" : "FAILED";
+            cardStatus.style.color = completedSuccessfully ? "#4caf50" : "#f44336";
+            cardWrapper.classList.add('done');
+
+            if (jobList[1] && jobList[2] && jobList[3] && jobList[4]) {
+                document.getElementById('end-p1').innerText = `$${p1Score}`;
+                document.getElementById('end-p2').innerText = `$${p2Score}`;
+                document.getElementById('winner-text').innerText = (numPlayers === 2 && p2Score > p1Score) ? "Player 2 Earned The Giant Trophy!" : "Player 1 Wins Golden Trophy!";
+                showScreen('screen-gameover');
+            } else {
+                updateWallets();
+                showScreen('screen-world');
+                isPointerDown = false;
+                window.focus(); 
+            }
+        }
+
+        function openShop() {
+            document.getElementById('shop-cash').innerText = `$${p1Score}`;
+            showScreen('screen-shop');
+        }
+
+        function buy(amount) {
+            if (p1Score >= amount) {
+                p1Score -= amount;
+                document.getElementById('shop-cash').innerText = `$${p1Score}`;
+                alert("🎩 Customization Item Unlocked and Equipped!");
+            } else {
+                alert("❌ Not enough Wobbly Bucks! Fly more missions!");
+            }
+        }
+
+        function resetAll() {
+            showScreen('screen-title');
+        }
+    </script>
+</body>
+</html>
