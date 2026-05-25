@@ -28,7 +28,7 @@
             display: none;
             width: 100%;
             max-width: 850px;
-            padding: 20px;
+            padding: 25px;
             background: rgba(20, 15, 40, 0.95);
             border: 4px solid #3d2f75;
             border-radius: 25px;
@@ -40,40 +40,43 @@
         .active { display: block; }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             color: #ffdf00;
             text-shadow: 3px 3px 0px #ff5722;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
-        h2 { color: #00ffd8; margin-bottom: 10px; font-size: 1.8rem; }
+        h2 { color: #00ffd8; margin-bottom: 15px; font-size: 2rem; }
 
+        /* 🔥 FIXED CLASS STYLING: Guarantees button visibility across all screens */
         .btn {
-            background: linear-gradient(to bottom, #ffeb3b, #ff9800);
-            border: 3px solid #ffffff;
-            border-radius: 15px;
-            color: #000;
-            padding: 12px 28px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 5px 0 #b36b00;
-            margin: 8px;
-            display: inline-block;
+            background: linear-gradient(to bottom, #ffeb3b, #ff9800) !important;
+            border: 3px solid #ffffff !important;
+            border-radius: 15px !important;
+            color: #000000 !important;
+            padding: 15px 32px !important;
+            font-size: 1.3rem !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+            box-shadow: 0 5px 0 #b36b00 !important;
+            margin: 12px !important;
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
             transition: transform 0.1s;
         }
         .btn:hover { transform: translateY(-2px); }
-        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #b36b00; }
+        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #b36b00 !important; }
 
         .hud {
             display: flex;
             justify-content: space-around;
             background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
+            padding: 12px;
             border-radius: 15px;
             margin-bottom: 15px;
             border: 2px dashed #3d2f75;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
 
         .wobbly-bucks { color: #4caf50; font-weight: bold; }
@@ -93,10 +96,10 @@
 
         .controls-hint {
             background: rgba(255, 255, 255, 0.05);
-            padding: 8px;
+            padding: 10px;
             border-radius: 10px;
             margin-top: 10px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: #ccc;
             font-weight: bold;
         }
@@ -153,4 +156,46 @@
 
     <div id="screen-title" class="screen active">
         <h1>WOBBLY LIFE:<br>SPACE FLIGHT EDITION</h1>
-        <div style="font-size: 70px; margin: 15px; animation: float 2s infinite alternate;">🛸
+        <div style="font-size: 70px; margin: 15px; animation: float 2s infinite alternate;">🛸</div>
+        <p style="margin-bottom: 20px; font-size: 1.2rem;">Fly your ship using your Keyboard Arrow Keys OR by holding your finger/mouse on the map screen!</p>
+        <button class="btn" onclick="startGame(1)">1 Player Mode</button>
+        <button class="btn" onclick="startGame(2)">2 Player Mode</button>
+    </div>
+
+    <div id="screen-world" class="screen">
+        <h2>🚀 Pilot Your Spaceship</h2>
+        <div class="hud">
+            <div>💰 P1 Wallet: <span id="world-p1-bucks" class="wobbly-bucks">$0</span></div>
+            <div id="world-p2-hud" style="display:none;">💰 P2 Wallet: <span id="world-p2-bucks" class="wobbly-bucks">$0</span></div>
+            <div style="color: #ffdf00;">👉 Guide ship to the <span style="color:#00ffd8; font-weight:bold;">FLASHING COMPUTER</span>!</div>
+        </div>
+
+        <canvas id="worldCanvas" width="800" height="400"></canvas>
+        <div class="controls-hint">⌨️ Computer: Use Arrows/WASD. 📱 Mobile: Hold down anywhere on map to drive!</div>
+
+        <div id="job-popup">
+            <h3>🖥️ Spaceship Central Job Board</h3>
+            <p>Tap your mission to earn Wobbly Bucks:</p>
+            <div class="job-grid">
+                <div id="btn-j1" class="job-card" onclick="launchMiniGame(1); event.stopPropagation();">
+                    <span style="font-size:1.8rem;">🛹</span>
+                    <h4>Hoverboard Delivery</h4>
+                    <span id="st-j1" style="color:#00ffd8;">READY - $150</span>
+                </div>
+                <div id="btn-j2" class="job-card" onclick="launchMiniGame(2); event.stopPropagation();">
+                    <span style="font-size:1.8rem;">☄️</span>
+                    <h4>Asteroid Defense</h4>
+                    <span id="st-j2" style="color:#00ffd8;">READY - $200</span>
+                </div>
+                <div id="btn-j3" class="job-card" onclick="launchMiniGame(3); event.stopPropagation();">
+                    <span style="font-size:1.8rem;">🧼</span>
+                    <h4>Slime Scrubbing</h4>
+                    <span id="st-j3" style="color:#00ffd8;">READY - $160</span>
+                </div>
+                <div id="btn-j4" class="job-card" onclick="launchMiniGame(4); event.stopPropagation();">
+                    <span style="font-size:1.8rem;">🍔</span>
+                    <h4>Alien Burger Chef</h4>
+                    <span id="st-j4" style="color:#00ffd8;">READY - $180</span>
+                </div>
+            </div>
+            <button class="btn" style="background:#f44336; box-shadow: 0 5px 0 #b71c1c; margin-top: 15px;" onclick
