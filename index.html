@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wobbly Life: Space Edition (Touch & Key Edition)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wobbly Life: Space Edition (Universal Flight Build)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,6 +11,7 @@
             padding: 0;
             font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
             user-select: none;
+            touch-action: none; /* Prevents mobile browser zooming or bouncing */
         }
 
         body {
@@ -27,8 +28,8 @@
             display: none;
             width: 100%;
             max-width: 850px;
-            padding: 25px;
-            background: rgba(20, 15, 40, 0.9);
+            padding: 20px;
+            background: rgba(20, 15, 40, 0.95);
             border: 4px solid #3d2f75;
             border-radius: 25px;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
@@ -39,13 +40,13 @@
         .active { display: block; }
 
         h1 {
-            font-size: 2.8rem;
+            font-size: 2.5rem;
             color: #ffdf00;
             text-shadow: 3px 3px 0px #ff5722;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
-        h2 { color: #00ffd8; margin-bottom: 15px; }
+        h2 { color: #00ffd8; margin-bottom: 10px; font-size: 1.8rem; }
 
         .btn {
             background: linear-gradient(to bottom, #ffeb3b, #ff9800);
@@ -57,7 +58,7 @@
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 5px 0 #b36b00;
-            margin: 10px;
+            margin: 8px;
             display: inline-block;
             transition: transform 0.1s;
         }
@@ -68,16 +69,16 @@
             display: flex;
             justify-content: space-around;
             background: rgba(0, 0, 0, 0.5);
-            padding: 12px;
+            padding: 10px;
             border-radius: 15px;
             margin-bottom: 15px;
             border: 2px dashed #3d2f75;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
         .wobbly-bucks { color: #4caf50; font-weight: bold; }
 
-        /* --- PHYSICS ENGINE CANVAS --- */
+        /* --- ARCADE WINDOW CANVAS --- */
         canvas {
             background: #04020a;
             border: 4px solid #1e173b;
@@ -85,7 +86,9 @@
             display: block;
             margin: 0 auto;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
-            cursor: pointer;
+            cursor: crosshair;
+            max-width: 100%;
+            height: auto;
         }
 
         .controls-hint {
@@ -93,11 +96,12 @@
             padding: 8px;
             border-radius: 10px;
             margin-top: 10px;
-            font-size: 0.95rem;
-            color: #aaa;
+            font-size: 0.9rem;
+            color: #ccc;
+            font-weight: bold;
         }
 
-        /* --- OVERLAY JOB MENU --- */
+        /* --- MENU POPUP --- */
         #job-popup {
             display: none;
             position: absolute;
@@ -106,79 +110,47 @@
             background: #191430;
             border: 4px solid #00ffd8;
             border-radius: 20px;
-            padding: 25px;
+            padding: 20px;
             z-index: 100;
-            width: 80%;
+            width: 85%;
         }
 
         .job-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
+            gap: 12px;
+            margin-top: 12px;
         }
 
         .job-card {
             background: rgba(255,255,255,0.05);
             border: 2px solid #3d2f75;
             border-radius: 12px;
-            padding: 15px;
+            padding: 12px;
             cursor: pointer;
-            pointer-events: auto; /* Guarantees tap registration */
         }
         .job-card:hover:not(.done) { border-color: #ffdf00; background: rgba(255,255,255,0.1); }
-        .job-card.done { border-color: #4caf50; opacity: 0.6; cursor: not-allowed; }
+        .job-card.done { border-color: #4caf50; opacity: 0.5; cursor: not-allowed; }
 
         /* --- SHOP GRID --- */
         .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
         .shop-item { background: rgba(0,0,0,0.4); border: 2px solid #ff9800; border-radius: 15px; padding: 15px; }
+        
+        .frozen-alert {
+            position: absolute;
+            background: rgba(0, 150, 255, 0.8);
+            border: 2px solid #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            top: 40%; left: 35%;
+            z-index: 50;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
     <div id="screen-title" class="screen active">
         <h1>WOBBLY LIFE:<br>SPACE FLIGHT EDITION</h1>
-        <div style="font-size: 80px; margin: 20px; animation: wobble 2s infinite alternate;">🛸</div>
-        <p>Use your keyboard to pilot your ship, click/tap the flashing computer, and beat jobs!</p>
-        <button class="btn" onclick="startGame(1)">1 Player Mode</button>
-        <button class="btn" onclick="startGame(2)">2 Player Mode</button>
-    </div>
-
-    <div id="screen-world" class="screen">
-        <h2>🚀 Pilot Your Spaceship</h2>
-        <div class="hud">
-            <div>💰 P1 Wallet: <span id="world-p1-bucks" class="wobbly-bucks">$0</span></div>
-            <div id="world-p2-hud" style="display:none;">💰 P2 Wallet: <span id="world-p2-bucks" class="wobbly-bucks">$0</span></div>
-            <div style="color: #ffdf00;">⚠️ Fly or <span style="color:#00ffd8; font-weight:bold;">TAP THE FLASHING COMPUTER</span> to grab a job!</div>
-        </div>
-
-        <canvas id="worldCanvas" width="800" height="400"></canvas>
-        <div class="controls-hint">⌨️ Controls: Use Arrow Keys / WASD, or click anywhere inside the screen to trigger actions!</div>
-
-        <div id="job-popup">
-            <h3>🖥️ Spaceship Central Job Board</h3>
-            <p>Select your mission payout challenge:</p>
-            <div class="job-grid">
-                <div id="btn-j1" class="job-card" onclick="launchMiniGame(1); event.stopPropagation();">
-                    <span style="font-size:2rem;">🛹</span>
-                    <h4>Hoverboard Luggage Balancer</h4>
-                    <span id="st-j1" style="color:#00ffd8;">READY - $150</span>
-                </div>
-                <div id="btn-j2" class="job-card" onclick="launchMiniGame(2); event.stopPropagation();">
-                    <span style="font-size:2rem;">☄️</span>
-                    <h4>Rocket Asteroid Field Defense</h4>
-                    <span id="st-j2" style="color:#00ffd8;">READY - $200</span>
-                </div>
-            </div>
-            <button class="btn" style="background:#f44336; box-shadow: 0 5px 0 #9c27b0;" onclick="closeJobBoard(); event.stopPropagation();">Exit Computer Terminal</button>
-        </div>
-    </div>
-
-    <div id="screen-minigame" class="screen">
-        <h2 id="game-title">Job Active!</h2>
-        <div class="hud">
-            <div>⏱️ Timer: <span id="game-timer" style="color:#ff5722; font-weight:bold;">0</span></div>
-            <div>Score / Progress: <span id="game-score" style="color:#ffdf00;">0</span></div>
-        </div>
-
-        <canvas id="game
+        <div style="font-size: 70px; margin: 15px; animation: float 2s infinite alternate;">🛸
