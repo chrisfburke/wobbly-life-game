@@ -3,400 +3,948 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wobbly Life: Island Adventure!</title>
+    <title>Wobbly Life: Space Edition</title>
     <style>
-        /* Modern, fun gaming theme using bright Wobbly Life colors */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #ffffff;
+        /* --- GLOBAL STYLES --- */
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
         }
 
-        .game-container {
-            background-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(100px);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 650px;
+        body {
+            background: linear-gradient(135deg, #0f0c1b, #201a36);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
             width: 100%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 800px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 4px solid #3d2f75;
+            border-radius: 25px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
             text-align: center;
-            border: 2px solid #4a90e2;
-            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .active {
+            display: block;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         h1 {
-            color: #f1c40f;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            font-size: 2.5rem;
-            margin-top: 0;
+            font-size: 2.8rem;
+            color: #ffdf00;
+            text-shadow: 3px 3px 0px #ff5722, -2px -2px 0px #000;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
         }
 
-        .stats-panel {
+        h2 {
+            font-size: 2rem;
+            color: #00ffd8;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(to bottom, #ffeb3b, #ff9800);
+            border: 3px solid #ffffff;
+            border-radius: 15px;
+            color: #000;
+            padding: 15px 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #b36b00;
+            transition: all 0.1s ease;
+            margin: 10px;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #b36b00;
+            background: linear-gradient(to bottom, #fff176, #ffa726);
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #b36b00;
+        }
+
+        .btn:disabled {
+            background: #555 !important;
+            box-shadow: 0 4px 0 #222 !important;
+            color: #888;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* --- HUD & STATUS --- */
+        .hud {
             display: flex;
             justify-content: space-around;
             background: rgba(0, 0, 0, 0.4);
-            padding: 10px;
-            border-radius: 10px;
+            padding: 15px;
+            border-radius: 15px;
             margin-bottom: 20px;
-            font-weight: bold;
-            font-size: 1.1rem;
+            border: 2px dashed #3d2f75;
+            font-size: 1.2rem;
         }
 
         .wobbly-bucks {
-            color: #2ecc71;
-        }
-
-        #story-text {
-            font-size: 1.3rem;
-            line-height: 1.6;
-            margin-bottom: 25px;
-            min-height: 80px;
-        }
-
-        .btn-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .choice-btn {
-            background-color: #e67e22;
-            color: white;
-            border: none;
-            padding: 15px 20px;
-            font-size: 1.1rem;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            color: #4caf50;
             font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 0px #000;
         }
 
-        .choice-btn:hover {
-            background-color: #d35400;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        .timer {
+            color: #ff5722;
+            font-weight: bold;
         }
 
-        /* Dynamic Product Grid Styles */
-        .shop-container {
-            max-width: 800px;
-            width: 100%;
-            text-align: center;
-            margin-top: 20px;
+        /* --- TITLE SCREEN VISUALS --- */
+        .avatar-container {
+            margin: 30px 0;
+            position: relative;
         }
 
-        .shop-title {
-            color: #f1c40f;
-            font-size: 1.8rem;
-            margin-bottom: 5px;
+        .wobbly-guy {
+            font-size: 100px;
+            display: inline-block;
+            animation: wobble 2s infinite ease-in-out;
         }
 
-        .shop-subtitle {
-            color: #bdc3c7;
-            margin-bottom: 20px;
+        .alien-hat {
+            font-size: 60px;
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounceHat 2s infinite ease-in-out;
         }
 
-        .product-grid {
+        @keyframes wobble {
+            0%, 100% { transform: rotate(-8deg) translateY(0); }
+            50% { transform: rotate(8deg) translateY(-10px); }
+        }
+
+        @keyframes bounceHat {
+            0%, 100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+            50% { transform: translateX(-50%) translateY(-5px) rotate(5deg); }
+        }
+
+        /* --- JOB BOARD GRID --- */
+        .job-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
-            width: 100%;
+            margin-top: 25px;
         }
 
-        .product-card {
-            background: rgba(255, 255, 255, 0.9);
-            color: #333333;
-            border-radius: 15px;
+        .job-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 3px solid #4a3b8c;
+            border-radius: 20px;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .product-card:hover {
-            transform: translateY(-5px);
+        .job-card:hover:not(.completed) {
+            transform: translateY(-5px) scale(1.02);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #00ffd8;
         }
 
-        .product-icon {
-            font-size: 3.5rem;
+        .job-card.completed {
+            border-color: #4caf50;
+            background: rgba(76, 175, 80, 0.15);
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .job-icon {
+            font-size: 3rem;
             margin-bottom: 10px;
         }
 
-        .product-name {
+        .job-title {
             font-weight: bold;
             font-size: 1.2rem;
-            margin: 10px 0 5px 0;
-            color: #2c3e50;
+            color: #fff;
+            margin-bottom: 5px;
         }
 
-        .product-price {
-            color: #27ae60;
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-        }
-
-        .amazon-btn {
-            background-color: #ff9900;
-            color: #111111;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
+        .job-status {
             font-size: 0.9rem;
-            transition: background-color 0.2s;
+            color: #00ffd8;
+            font-weight: bold;
         }
 
-        .amazon-btn:hover {
-            background-color: #e68a00;
+        .job-card.completed .job-status {
+            color: #4caf50;
+        }
+
+        /* --- MINI-GAME GRAPHICS ELEMENTS --- */
+        .game-area {
+            background: #05030a;
+            border: 3px solid #1a1530;
+            border-radius: 15px;
+            height: 250px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Confetti Effect */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff0;
+            animation: confettiFall 1s linear infinite;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(260px) rotate(360deg); opacity: 0; }
+        }
+
+        /* Frozen overlay */
+        .frozen-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 162, 255, 0.4);
+            color: #fff;
+            font-size: 2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-shadow: 2px 2px 4px #000;
+            z-index: 10;
+            animation: icePulse 1s infinite alternate;
+        }
+
+        @keyframes icePulse {
+            0% { background: rgba(0, 162, 255, 0.3); }
+            100% { background: rgba(0, 162, 255, 0.6); }
+        }
+
+        /* --- TROPHY DROP ANIMATION --- */
+        .trophy-container {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .giant-trophy {
+            font-size: 120px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: -150px;
+            animation: dropTrophy 1.5s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation-delay: 0.5s;
+        }
+
+        @keyframes dropTrophy {
+            0% { top: -150px; }
+            70% { top: 40px; transform: translateX(-50%) scaleY(0.8); }
+            80% { top: 20px; transform: translateX(-50%) scaleY(1.1); }
+            90% { top: 45px; transform: translateX(-50%) scaleY(0.95); }
+            100% { top: 30px; transform: translateX(-50%) scaleY(1); }
+        }
+
+        /* --- REWARDS SHOP GRID --- */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .shop-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #ff9800;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .shop-item-icon {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .owned-badge {
+            color: #4caf50;
+            font-weight: bold;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
 
-    <div class="game-container">
-        <h1>Wobbly Life Simulator</h1>
+    <div id="screen-title" class="screen active">
+        <h1>WOBBLY LIFE:<br>SPACE EDITION</h1>
         
-        <div class="stats-panel">
-            <div>📍 Location: <span id="location-display">Wobbly Street</span></div>
-            <div>💰 Cash: <span id="cash-display" class="wobbly-bucks">$0</span></div>
+        <div class="avatar-container">
+            <span class="alien-hat">🛸</span>
+            <span class="wobbly-guy">🤠</span>
         </div>
 
-        <p id="story-text">Loading your Wobbly Life...</p>
+        <p>Welcome to Space, Wobblies! Fly around the cosmic outpost, race your rival, complete funny tasks, and earn massive Wobbly Bucks!</p>
+        
+        <div style="margin-top: 20px;">
+            <button class="btn" onclick="startSetup(1)">1 Player Mode</button>
+            <button class="btn" onclick="startSetup(2)">2 Player Mode</button>
+        </div>
+    </div>
 
-        <div id="choices-box" class="btn-container">
+
+    <div id="screen-board" class="screen">
+        <h2>🖥️ Ship's Main Computer</h2>
+        <div class="hud">
+            <div>🚀 Turn: <span id="hud-turn-player" style="color:#ffdf00; font-weight:bold;">Player 1</span></div>
+            <div>💰 P1: <span id="hud-p1-bucks" class="wobbly-bucks">$0</span></div>
+            <div id="hud-p2-container" style="display:none;">💰 P2: <span id="hud-p2-bucks" class="wobbly-bucks">$0</span></div>
+        </div>
+        <p id="board-instruction">Player 1, punch the computer monitor to select an open job mission!</p>
+
+        <div class="job-grid">
+            <div id="card-job1" class="job-card" onclick="selectJob(1)">
+                <div class="job-icon">🛹</div>
+                <div class="job-title">Hoverboard Luggage Delivery</div>
+                <div id="status-job1" class="job-status">READY</div>
+            </div>
+            <div id="card-job2" class="job-card" onclick="selectJob(2)">
+                <div class="job-icon">🚀</div>
+                <div class="job-title">Rocket Asteroid Shooter</div>
+                <div id="status-job2" class="job-status">READY</div>
+            </div>
+            <div id="card-job3" class="job-card" onclick="selectJob(3)">
+                <div class="job-icon">🧼</div>
+                <div class="job-title">Zero-G Slime Scrubbing</div>
+                <div id="status-job3" class="job-status">READY</div>
+            </div>
+            <div id="card-job4" class="job-card" onclick="selectJob(4)">
+                <div class="job-icon">🍔</div>
+                <div class="job-title">Zero-G Alien Burger Chef</div>
+                <div id="status-job4" class="job-status">READY</div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="screen-job1" class="screen">
+        <h2>🛹 Hoverboard Luggage Rush!</h2>
+        <div class="hud">
+            <div class="timer">⏳ Time Left: <span id="j1-timer">3:00</span></div>
+            <div>💵 Est. Paycheck: <span id="j1-pay" class="wobbly-bucks">$150</span></div>
+        </div>
+        
+        <div class="game-area" id="j1-area">
+            <div id="j1-text" style="font-size: 1.4rem; padding: 20px; font-weight: bold;"></div>
+        </div>
+
+        <div id="j1-controls">
             </div>
     </div>
 
-    <div class="shop-container">
-        <h2 class="shop-title">Get the Real Life Wobbly Gear!</h2>
-        <p class="shop-subtitle">Items match your current in-game choice or level.</p>
-        
-        <div id="product-grid" class="product-grid">
+
+    <div id="screen-job2" class="screen">
+        <h2>🚀 Rocket Asteroid Shooter</h2>
+        <div class="hud">
+            <div style="color:#00ffd8;">☄️ Asteroids Shot: <span id="j2-count">0 / 20</span></div>
+            <div>💵 Collected: <span id="j2-pay" class="wobbly-bucks">$0</span></div>
+        </div>
+
+        <div class="game-area" id="j2-area">
+            <div id="j2-display" style="font-size: 1.5rem; font-weight: bold;"></div>
+        </div>
+
+        <div id="j2-controls">
             </div>
+    </div>
+
+
+    <div id="screen-job3" class="screen">
+        <h2>🧼 Zero-Gravity Slime Scrubbing</h2>
+        <div class="hud">
+            <div class="timer">⏳ Clock: <span id="j3-timer">3:00</span></div>
+            <div>🧹 Clean Progress: <span id="j3-progress" style="color: #00ffd8; font-weight: bold;">0%</span></div>
+        </div>
+
+        <div class="game-area" id="j3-area">
+            <div id="j3-display" style="font-size: 1.4rem; font-weight: bold; padding: 10px;"></div>
+        </div>
+
+        <div id="j3-controls">
+            </div>
+    </div>
+
+
+    <div id="screen-job4" class="screen">
+        <h2>🍔 Zero-G Alien Burger Chef</h2>
+        <div class="hud">
+            <div>🍔 Burgers Made: <span id="j4-count" style="color:#ffdf00; font-weight:bold;">0</span></div>
+            <div>💵 Total Tips: <span id="j4-pay" class="wobbly-bucks">$0</span></div>
+        </div>
+
+        <div class="game-area" id="j4-area">
+            <div id="j4-display" style="font-size: 1.3rem; font-weight: bold; padding: 15px;"></div>
+        </div>
+
+        <div id="j4-controls">
+            </div>
+    </div>
+
+
+    <div id="screen-gameover" class="screen">
+        <h1>🏆 WORK COMPLETED! 🏆</h1>
+        
+        <div class="trophy-container">
+            <div class="giant-trophy">🏆</div>
+        </div>
+
+        <h2 id="winner-announcement" style="color: #ffdf00; text-shadow: 2px 2px 0px #000;"></h2>
+        
+        <div class="hud" style="max-width: 500px; margin: 20px auto;">
+            <div>Player 1 Total: <span id="final-p1-bucks" class="wobbly-bucks">$0</span></div>
+            <div id="final-p2-container">Player 2 Total: <span id="final-p2-bucks" class="wobbly-bucks">$0</span></div>
+        </div>
+
+        <button class="btn" onclick="goToShop()">Go to Rewards Shop 🛍️</button>
+    </div>
+
+
+    <div id="screen-shop" class="screen">
+        <h2>🛍️ Wobbly Outpost Rewards Shop</h2>
+        <div class="hud" style="max-width: 400px; margin: 0 auto 20px auto;">
+            <div>Your Wallet: <span id="shop-wallet" class="wobbly-bucks">$0</span></div>
+        </div>
+
+        <div class="shop-grid">
+            <div class="shop-item">
+                <div class="shop-item-icon">👽</div>
+                <h3>Alien Costume Outfit</h3>
+                <p>Cost: $100</p>
+                <div id="shop-btn-item1"></div>
+            </div>
+            <div class="shop-item">
+                <div class="shop-item-icon">🚀</div>
+                <h3>Spaceship Hyper-Drive</h3>
+                <p>Cost: $200</p>
+                <div id="shop-btn-item2"></div>
+            </div>
+            <div class="shop-item">
+                <div class="shop-item-icon">⚡</div>
+                <h3>Plasma Hoverboard</h3>
+                <p>Cost: $150</p>
+                <div id="shop-btn-item3"></div>
+            </div>
+        </div>
+
+        <hr style="margin: 30px 0; border: 1px solid #3d2f75;">
+        <button class="btn" style="background: #2196f3; box-shadow:0 6px 0 #0d47a1; color:white;" onclick="resetWholeGame()">Play Again 🔄</button>
     </div>
 
     <script>
-        // GAME STATE DATA (Tracking stats)
-        let cash = 0;
-        let currentScene = "start";
+        // --- GAME STATE ---
+        let totalPlayers = 1;
+        let currentPlayerTurn = 1; // Tracks whose turn it is to pick/play a job
+        let p1Bucks = 0;
+        let p2Bucks = 0;
+        
+        // Tracking completed board jobs
+        let jobsCompleted = { 1: false, 2: false, 3: false, 4: false };
+        
+        // Upgrades unlocked inventory
+        let p1Inventory = { item1: false, item2: false, item3: false };
+        let p2Inventory = { item1: false, item2: false, item3: false };
 
-        // 1. THE GAME SCRIPT DIRECTORY (All story layers are stored here)
-        const storyData = {
-            start: {
-                text: "You wake up on Wobbly Island feeling incredibly floppy. Grandma Wobbly tells you it's time to get a job and earn some Wobbly Bucks! Where do you want to look first?",
-                location: "Grandma's House",
-                cashGained: 0,
-                choices: [
-                    { text: "🍕 Go to the Pizza Shop", nextScene: "pizzaJob" },
-                    { text: "🚜 Head to the Farm", nextScene: "farmJob" },
-                    { text: "🧪 Visit the Secret Alien Lab", nextScene: "secretLab" }
-                ]
-            },
-            pizzaJob: {
-                text: "You get hired as a delivery driver! You pile 5 pizzas onto a tiny scooter. As you speed down the hill, the physics engine goes crazy and you start wobbling dangerously. What do you do?",
-                location: "Pizza Town",
-                cashGained: 20,
-                choices: [
-                    { text: "🚲 Do a backflip off a ramp!", nextScene: "pizzaFlip" },
-                    { text: "🚗 Safely deliver them to the Mayor", nextScene: "pizzaSuccess" }
-                ]
-            },
-            pizzaFlip: {
-                text: "CRASH! You hit the ramp, the scooter spins 360 degrees, and all the pizzas splat directly onto a police car. You don't get paid, but you found a hidden present box in mid-air!",
-                location: "The Sky",
-                cashGained: 0,
-                choices: [
-                    { text: "🎁 Open the secret present!", nextScene: "unlockCostume" },
-                    { text: "🏠 Go back home to Grandma", nextScene: "start" }
-                ]
-            },
-            pizzaSuccess: {
-                text: "Success! The Mayor loves cold, wind-swept pizza. He hands you a massive tip of Wobbly Bucks! You can now afford a vehicle from the dealership.",
-                location: "Town Hall",
-                cashGained: 50,
-                choices: [
-                    { text: "🏎️ Buy the Hypercar", nextScene: "buyCar" },
-                    { text: "🚁 Buy the Wobbly Helicopter", nextScene: "buyHeli" }
-                ]
-            },
-            farmJob: {
-                text: "You arrive at the farm. The farmer tells you to round up the runaway rolling chickens and harvest giant turnips. You jump onto a giant tractor.",
-                location: "Wobbly Farm",
-                cashGained: 30,
-                choices: [
-                    { text: "🐓 Chase the radioactive golden chicken", nextScene: "goldenChicken" },
-                    { text: "Turnips? Smash them with the tractor!", nextScene: "turnipSmash" }
-                ]
-            },
-            goldenChicken: {
-                text: "The golden chicken flies onto a UFO that suddenly flies overhead! You get beamed up into space. You are officially an Astronaut Wobbly!",
-                location: "Outer Space",
-                cashGained: 100,
-                choices: [
-                    { text: "🎉 Claim your Ultimate Game Victory!", nextScene: "winEnding" }
-                ]
-            },
-            turnipSmash: {
-                text: "Boom! The turnips explode into pink juice, completely painting the farmer's barn. He kicks you out, but pays you a little for the comedy.",
-                location: "Messy Farm",
-                cashGained: 15,
-                choices: [
-                    { text: "🔄 Try another day", nextScene: "start" }
-                ]
-            },
-            secretLab: {
-                text: "You sneak past the guards into the laboratory. On the table sits a Glowing Green Artifact and a Portal Gun. Alarms start blaring!",
-                location: "Secret Lab",
-                cashGained: 0,
-                choices: [
-                    { text: "🔫 Shoot the Portal Gun at the wall", nextScene: "portalScene" },
-                    { text: "🏃 Grab the artifact and run!", nextScene: "chaseScene" }
-                ]
-            },
-            portalScene: {
-                text: "The portal opens and sucks you directly into the Arcade World! You're trapped inside a vintage gaming cabinet.",
-                location: "Arcade Dimension",
-                cashGained: 40,
-                choices: [
-                    { text: "🕹️ Play to escape!", nextScene: "winEnding" }
-                ]
-            },
-            chaseScene: {
-                text: "The lab guards chase you on jelly-legs. You trip over your own wobbly feet and bounce down the mountain like a beach ball, landing in a pile of money!",
-                location: "Mountain Base",
-                cashGained: 60,
-                choices: [
-                    { text: "🏎️ Take your money to buy a vehicle!", nextScene: "pizzaSuccess" }
-                ]
-            },
-            unlockCostume: {
-                text: "POP! You unlocked the legendary Jelly Bean Costume! You are now the funniest looking Wobbly on the server. Everyone follows you around.",
-                location: "Wobbly Square",
-                cashGained: 25,
-                choices: [
-                    { text: "👑 Celebrate your new style!", nextScene: "winEnding" }
-                ]
-            },
-            buyCar: {
-                text: "You jump into your neon-blue hypercar. You take a sharp turn at 200mph, fly off the cliff side, and launch directly over the volcano! Best day ever.",
-                location: "The Volcano",
-                cashGained: 0,
-                choices: [
-                    { text: "🔥 Finish in style!", nextScene: "winEnding" }
-                ]
-            },
-            buyHeli: {
-                text: "You fly high above the island, looking down at all the tiny wobbling players. You decide to try dropping a giant couch onto the mountain top. You have achieved peak freedom!",
-                location: "Clouds",
-                cashGained: 0,
-                choices: [
-                    { text: "🚁 Land and wrap up your summer!", nextScene: "winEnding" }
-                ]
-            },
-            winEnding: {
-                text: "GAME OVER! You have successfully mastered the chaos of Wobbly Island, earned plenty of cash, and created legendary memories. Click below to reset the server and start a brand-new day!",
-                location: "Wobbly Paradise",
-                cashGained: 0,
-                choices: [
-                    { text: "🔄 Restart the Wobbly Day!", nextScene: "start" }
-                ]
-            }
-        };
-
-        // 2. THE DYNAMIC CONTEXTUAL SHOP CATALOG (Maligned with the game levels)
-        const shopCatalog = {
-            start: [
-                { icon: "🎮", name: "Wobbly Life Game Key", price: "$19.99", link: "YOUR_AMAZON_LINK_1" },
-                { icon: "🧸", name: "Wobbly Plush Toy Set", price: "$14.95", link: "YOUR_AMAZON_LINK_2" }
-            ],
-            pizzaJob: [
-                { icon: "🍕", name: "Inflatable Pizza Float", price: "$12.99", link: "YOUR_AMAZON_LINK_3" },
-                { icon: "🛵", name: "Toy Delivery Scooter", price: "$8.99", link: "YOUR_AMAZON_LINK_4" }
-            ],
-            farmJob: [
-                { icon: "🚜", name: "John Deere Toy Tractor", price: "$24.99", link: "YOUR_AMAZON_LINK_5" },
-                { icon: "🐓", name: "Screaming Rubber Chicken", price: "$7.50", link: "YOUR_AMAZON_LINK_6" }
-            ],
-            secretLab: [
-                { icon: "👽", name: "Glowing Alien Slime", price: "$9.99", link: "YOUR_AMAZON_LINK_7" },
-                { icon: "🔫", name: "Sci-Fi Toy Laser Blaster", price: "$18.50", link: "YOUR_AMAZON_LINK_8" }
-            ],
-            winEnding: [
-                { icon: "🏆", name: "Gold Winner Medal", price: "$5.99", link: "YOUR_AMAZON_LINK_9" },
-                { icon: "👕", name: "Custom Wobbly Gamer Shirt", price: "$19.99", link: "YOUR_AMAZON_LINK_10" }
-            ]
-        };
-
-        // 3. THE CORE ENGINE FUNCTION (Updates the website display dynamically)
-        function renderScene(sceneId) {
-            const scene = storyData[sceneId];
-            if (!scene) return;
-
-            // Handle Restart Logic
-            if (sceneId === "start" && currentScene === "winEnding") {
-                cash = 0;
-            }
-
-            // Update parameters
-            currentScene = sceneId;
-            cash += scene.cashGained;
-
-            // Update UI
-            document.getElementById("story-text").textContent = scene.text;
-            document.getElementById("location-display").textContent = scene.location;
-            document.getElementById("cash-display").textContent = `$${cash}`;
-
-            // Build Action Buttons
-            const choicesBox = document.getElementById("choices-box");
-            choicesBox.innerHTML = ""; // Clear old buttons
-
-            scene.choices.forEach(choice => {
-                const button = document.createElement("button");
-                button.className = "choice-btn";
-                button.textContent = choice.text;
-                // Event listener to change scenes on click
-                button.onclick = () => renderScene(choice.nextScene);
-                choicesBox.appendChild(button);
-            });
-
-            // Update the Dynamic Affiliate Products
-            updateShop(sceneId);
+        // --- NAVIGATION CONTROLLER ---
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
         }
 
-        // 4. THE SHOP DISPATCH FUNCTION (Changes catalog content contextually)
-        function updateShop(sceneId) {
-            const grid = document.getElementById("product-grid");
-            grid.innerHTML = ""; // Wipe previous grid cards
+        // --- GAME STARTUP ---
+        function startSetup(players) {
+            totalPlayers = players;
+            currentPlayerTurn = 1;
+            p1Bucks = 0;
+            p2Bucks = 0;
+            jobsCompleted = { 1: false, 2: false, 3: false, 4: false };
+            
+            // UI visibility updates
+            if (totalPlayers === 2) {
+                document.getElementById('hud-p2-container').style.display = 'block';
+                document.getElementById('final-p2-container').style.display = 'block';
+            } else {
+                document.getElementById('hud-p2-container').style.display = 'none';
+                document.getElementById('final-p2-container').style.display = 'none';
+            }
+            
+            resetJobBoardVisuals();
+            updateHUD();
+            showScreen('screen-board');
+        }
 
-            // Fallback to "start" items if a scene doesn't have custom products defined
-            const items = shopCatalog[sceneId] || shopCatalog["start"];
+        function updateHUD() {
+            document.getElementById('hud-turn-player').innerText = `Player ${currentPlayerTurn}`;
+            document.getElementById('hud-p1-bucks').innerText = `$${p1Bucks}`;
+            document.getElementById('final-p1-bucks').innerText = `$${p1Bucks}`;
+            
+            if (totalPlayers === 2) {
+                document.getElementById('hud-p2-bucks').innerText = `$${p2Bucks}`;
+                document.getElementById('final-p2-bucks').innerText = `$${p2Bucks}`;
+                document.getElementById('board-instruction').innerText = `Player ${currentPlayerTurn}, punch the monitor to select a mission!`;
+            } else {
+                document.getElementById('board-instruction').innerText = `Select a job mission to build your space empire!`;
+            }
+        }
 
-            items.forEach(item => {
-                const card = document.createElement("div");
-                card.className = "product-card";
-                card.innerHTML = `
-                    <div class="product-icon">${item.icon}</div>
-                    <div class="product-name">${item.name}</div>
-                    <div class="product-price">${item.price}</div>
-                    <a href="${item.link}" target="_blank" class="amazon-btn">View on Amazon →</a>
+        function resetJobBoardVisuals() {
+            for (let i = 1; i <= 4; i++) {
+                let card = document.getElementById(`card-job${i}`);
+                let status = document.getElementById(`status-job${i}`);
+                card.classList.remove('completed');
+                status.innerText = "READY";
+                status.style.color = "#00ffd8";
+            }
+        }
+
+        // --- SELECT JOB FROM BOARD ---
+        function selectJob(jobId) {
+            if (jobsCompleted[jobId]) return; // Job already finished
+            
+            // Switch to the matching active job screen
+            if (jobId === 1) startJob1();
+            if (jobId === 2) startJob2();
+            if (jobId === 3) startJob3();
+            if (jobId === 4) startJob4();
+        }
+
+        function completeJobOnBoard(jobId, payout) {
+            // Distribute cash payout to current turn pilot
+            if (currentPlayerTurn === 1) {
+                p1Bucks += payout;
+            } else {
+                p2Bucks += payout;
+            }
+
+            jobsCompleted[jobId] = true;
+            
+            // Visual lock on card
+            let card = document.getElementById(`card-job${jobId}`);
+            let status = document.getElementById(`status-job${jobId}`);
+            card.classList.add('completed');
+            status.innerText = "COMPLETED";
+            
+            // Check if all four games are knocked out
+            if (jobsCompleted[1] && jobsCompleted[2] && jobsCompleted[3] && jobsCompleted[4]) {
+                setTimeout(triggerGameOver, 1000);
+                return;
+            }
+
+            // Alternating multiplayer turn assignments
+            if (totalPlayers === 2) {
+                currentPlayerTurn = currentPlayerTurn === 1 ? 2 : 1;
+            }
+            
+            updateHUD();
+            showScreen('screen-board');
+        }
+
+
+        // ===================================================
+        // CORE MINI-GAME SCRIPTS (LOGIC & STORY BRANCHES)
+        // ===================================================
+
+        // --- JOB 1 ENGINE: HOVERBOARD LUGGAGE ---
+        let j1HasTicket = false;
+        let j1BasePay = 150;
+
+        function startJob1() {
+            j1HasTicket = false;
+            j1BasePay = 150;
+            document.getElementById('j1-timer').innerText = "3:00";
+            document.getElementById('j1-pay').innerText = `$${j1BasePay}`;
+            
+            showScreen('screen-job1');
+            j1Scene1();
+        }
+
+        function j1Scene1() {
+            document.getElementById('j1-area').innerHTML = `
+                <div id="j1-text">
+                    🛹 Balancing a 6-foot stack of hotel luggage, you accelerate down the hallway!<br><br>
+                    Suddenly, your opponent rockets out of an elevator right in front of you! What do you do?
+                </div>
+            `;
+            document.getElementById('j1-controls').innerHTML = `
+                <button class="btn" onclick="j1Swerve()">Swerve sharply around them</button>
+                <button class="btn" onclick="j1Bump()">BUMP into them purposefully!</button>
+            `;
+        }
+
+        function j1Swerve() {
+            document.getElementById('j1-timer').innerText = "1:45";
+            document.getElementById('j1-area').innerHTML = `
+                <div id="j1-text">
+                    You swerved! Your wobbly arms fly everywhere, but you maintain your balance.<br><br>
+                    Oh no! The ceiling sprinkler system activates ahead. The carpet is completely soaked and slick!
+                </div>
+            `;
+            document.getElementById('j1-controls').innerHTML = `
+                <button class="btn" onclick="j1SlowDown()">Slow down safely</button>
+                <button class="btn" onclick="j1SpeedUp()">Full Speed Ahead!</button>
+            `;
+        }
+
+        function j1Bump() {
+            j1BasePay = 0;
+            document.getElementById('j1-pay').innerText = `$${j1BasePay}`;
+            document.getElementById('j1-timer').innerText = "0:00";
+            
+            // Create confetti structural boom animation elements
+            let area = document.getElementById('j1-area');
+            area.innerHTML = `<div id="j1-text" style="color:#ff5722;">💥 CRASH!!! Your entire luggage stack exploded into funny confetti!</div>`;
+            for(let i=0; i<20; i++) {
+                let conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 90 + '%';
+                conf.style.backgroundColor = `hsl(${Math.random() * 360}deg, 100%, 50%)`;
+                conf.style.animationDelay = Math.random() * 0.5 + 's';
+                area.appendChild(conf);
+            }
+
+            document.getElementById('j1-controls').innerHTML = `
+                <div style="margin-bottom:10px; color:#ffdf00; font-weight:bold;">✨ Look! A Golden Ticket floated out of the explosion!</div>
+                <button class="btn" onclick="j1GrabTicket()">Grab the Golden Ticket!</button>
+            `;
+        }
+
+        function j1GrabTicket() {
+            j1HasTicket = true;
+            j1BasePay = 250; // Boosted reward compensation
+            document.getElementById('j1-pay').innerText = `$${j1BasePay}`;
+            document.getElementById('j1-timer').innerText = "0:10";
+            
+            document.getElementById('j1-area').innerHTML = `
+                <div id="j1-text" style="color:#ffdf00;">
+                    ⚡ GOLDEN SPEED BOOST ACTIVATED! Your hoverboard shoots sparks as you launch down the hall in hyperspeed!
+                </div>
+            `;
+            document.getElementById('j1-controls').innerHTML = `
+                <button class="btn" onclick="completeJobOnBoard(1, j1BasePay)">Cross Room Finish Line! 🏁</button>
+            `;
+        }
+
+        function j1SlowDown() {
+            j1BasePay = 100; // Deducted pay due to running late
+            document.getElementById('j1-pay').innerText = `$${j1BasePay}`;
+            document.getElementById('j1-timer').innerText = "0:05";
+            document.getElementById('j1-area').innerHTML = `<div id="j1-text">You safely crawled through the water. You delivered the items safely but took too long!</div>`;
+            document.getElementById('j1-controls').innerHTML = `<button class="btn" onclick="completeJobOnBoard(1, j1BasePay)">Finish Job</button>`;
+        }
+
+        function j1SpeedUp() {
+            document.getElementById('j1-timer').innerText = "0:02";
+            document.getElementById('j1-area').innerHTML = `<div id="j1-text">🚀 Pure drift control! You sliding across the wet carpet like a champion and arrive early!</div>`;
+            document.getElementById('j1-controls').innerHTML = `<button class="btn" onclick="completeJobOnBoard(1, j1BasePay)">Finish Job</button>`;
+        }
+
+
+        // --- JOB 2 ENGINE: ASTEROID SHOOTER ---
+        let j2AsteroidsHit = 0;
+        let j2CurrentCash = 0;
+
+        function startJob2() {
+            j2AsteroidsHit = 0;
+            j2CurrentCash = 0;
+            document.getElementById('j2-count').innerText = `${j2AsteroidsHit} / 20`;
+            document.getElementById('j2-pay').innerText = `$${j2CurrentCash}`;
+            
+            showScreen('screen-job2');
+            j2SpawnWave();
+        }
+
+        function j2SpawnWave() {
+            if (j2AsteroidsHit >= 20) {
+                document.getElementById('j2-display').innerHTML = `<span style="color:#4caf50;">🌌 Target Sector Clear! 20/20 Asteroids Obliterated!</span>`;
+                document.getElementById('j2-controls').innerHTML = `<button class="btn" onclick="completeJobOnBoard(2, j2CurrentCash)">Return to Station</button>`;
+                return;
+            }
+
+            document.getElementById('j2-display').innerHTML = `☄️ A giant cluster of ${20 - j2AsteroidsHit} asteroids is approaching the cockpit!`;
+            document.getElementById('j2-controls').innerHTML = `
+                <button class="btn" onclick="j2Shoot(false)">Fire Laser Cannon! (Normal)</button>
+                <button class="btn" onclick="j2Shoot(true)">Wait and time the Last Exploding Hit! 🎯</button>
+            `;
+        }
+
+        function j2Shoot(isLastHitStrategy) {
+            if (isLastHitStrategy) {
+                // High risk strategy steal multiplier mechanics
+                let success = Math.random() > 0.3;
+                if (success) {
+                    j2AsteroidsHit += 5;
+                    j2CurrentCash += 75;
+                    document.getElementById('j2-display').innerHTML = `💥 STEAL! You timed the final explosion and hijacked all the Wobbly Bucks from your rival!`;
+                } else {
+                    j2CurrentCash += 10;
+                    document.getElementById('j2-display').innerHTML = `❌ Missed calculation! Your rival shot it first and got the bonus.`;
+                }
+            } else {
+                // Safe standard generation increment base
+                j2AsteroidsHit += 3;
+                j2CurrentCash += 30;
+                document.getElementById('j2-display').innerHTML = `⚡ ZAP! You chipped away at the asteroid field and collected standard credits.`;
+            }
+
+            if (j2AsteroidsHit > 20) j2AsteroidsHit = 20;
+            
+            document.getElementById('j2-count').innerText = `${j2AsteroidsHit} / 20`;
+            document.getElementById('j2-pay').innerText = `$${j2CurrentCash}`;
+
+            document.getElementById('j2-controls').innerHTML = `<button class="btn" onclick="j2SpawnWave()">Scan for Next Wave 📡</button>`;
+        }
+
+
+        // --- JOB 3 ENGINE: SLIME SCRUBBING ---
+        let j3Percent = 0;
+        let j3SecondsLeft = 180;
+
+        function startJob3() {
+            j3Percent = 0;
+            j3SecondsLeft = 180;
+            document.getElementById('j3-timer').innerText = "3:00";
+            document.getElementById('j3-progress').innerText = `${j3Percent}%`;
+            
+            showScreen('screen-job3');
+            j3Loop();
+        }
+
+        function j3Loop() {
+            // Check win parameters
+            if (j3Percent >= 100) {
+                document.getElementById('j3-area').innerHTML = `<div id="j3-display" style="color:#4caf50;">✨ The windows are pristine! No green slime remaining!</div>`;
+                document.getElementById('j3-controls').innerHTML = `<button class="btn" onclick="completeJobOnBoard(3, 160)">Collect $160 Payload</button>`;
+                return;
+            }
+
+            document.getElementById('j3-area').innerHTML = `<div id="j3-display">🟢 Slime puddle detected on Window Module B! Grab your mega-sponge!</div>`;
+            document.getElementById('j3-controls').innerHTML = `
+                <button class="btn" onclick="j3Scrub(false)">Scrub Normal (Careful)</button>
+                <button class="btn" onclick="j3Scrub(true)">Super Fast Hyper-Scrub! ⚡</button>
+            `;
+        }
+
+        function j3Scrub(isRisky) {
+            if (isRisky) {
+                let slipChance = Math.random() > 0.5;
+                if (slipChance) {
+                    // Ice Freeze lock configuration penalty
+                    document.getElementById('j3-area').innerHTML = `
+                        <div class="frozen-overlay">🧊 SLIPPED & FROZEN FOR 5 SECONDS!</div>
+                        <div id="j3-display">Oops! You lost footing on green slime!</div>
+                    `;
+                    document.getElementById('j3-controls').innerHTML = `<button class="btn" disabled>Frozen...</button>`;
+                    
+                    setTimeout(() => {
+                        j3Percent += 10; // Earn some despite fall
+                        if(j3Percent > 100) j3Percent = 100;
+                        document.getElementById('j3-progress').innerText = `${j3Percent}%`;
+                        j3Loop();
+                    }, 2000);
+                    return;
+                } else {
+                    j3Percent += 40;
+                    document.getElementById('j3-area').innerHTML = `<div id="j3-display">🚀 Incredible wobbly balance! You wiped out massive patches of slime!</div>`;
+                }
+            } else {
+                j3Percent += 20;
+                document.getElementById('j3-area').innerHTML = `<div id="j3-display">🧼 Slow and steady cleans the window panel safely.</div>`;
+            }
+
+            if(j3Percent > 100) j3Percent = 100;
+            document.getElementById('j3-progress').innerText = `${j3Percent}%`;
+            
+            document.getElementById('j3-controls').innerHTML = `<button class="btn" onclick="j3Loop()">Move to Next Window Panel</button>`;
+        }
+
+
+        // --- JOB 4 ENGINE: ALIEN BURGER CHEF ---
+        let j4Burgers = 0;
+        let j4Tips = 0;
+
+        function startJob4() {
+            j4Burgers = 0;
+            j4Tips = 0;
+            document.getElementById('j4-count').innerText = j4Burgers;
+            document.getElementById('j4-pay').innerText = `$${j4Tips}`;
+            
+            showScreen('screen-job4');
+            j4NextOrder();
+        }
+
+        function j4NextOrder() {
+            document.getElementById('j4-area').innerHTML = `<div id="j4-display">👽 A tentacled alien sits down at the table. They demand a Glip-Glop Burger with space-buns immediately!</div>`;
+            document.getElementById('j4-controls').innerHTML = `
+                <button class="btn" onclick="j4Assemble()">Start Grilling Assembly</button>
+            `;
+        }
+
+        function j4Assemble() {
+            document.getElementById('j4-area').innerHTML = `<div id="j4-display">💨 Oh no! Zero gravity kicks in! The burger buns are floating away to the ceiling ventilation tubes!</div>`;
+            document.getElementById('j4-controls').innerHTML = `
+                <button class="btn" onclick="j4CatchBuns()">Jump up with wobbly legs to grab buns!</button>
+                <button class="btn" onclick="j4IgnoreBuns()">Just use space-pickles as the bun instead</button>
+            `;
+        }
+
+        function j4CatchBuns() {
+            let pickleSplat = Math.random() > 0.4;
+            if (pickleSplat) {
+                document.getElementById('j4-area').innerHTML = `
+                    <div id="j4-display" style="color: #ff5722;">
+                        💥 SPLAT!!! The hangry alien threw a floating space pickle directly at your face! You missed the bun!
+                    </div>
                 `;
-                grid.appendChild(card);
-            });
+                j4Tips += 5; // Minimal tip
+            } else {
+                document.getElementById('j4-area').innerHTML = `
+                    <div id="j4-display" style="color: #ffdf00;">
+                        🍔 PERFECT MATCH! You caught the floating bun and served a flawless space burger!
+                    </div>
+                `;
+                j4Burgers += 1;
+                j4Tips += 60;
+            }
+
+            j4UpdateScore();
         }
 
-        // KICK OFF THE GAME FOR THE FIRST TIME
-        renderScene("start");
+        function j4IgnoreBuns() {
+            document.getElementById('j4-area').innerHTML = `
+                <div id="j4-display">
+                    🥒 The alien stares at the pickle bun layout... <br>
+                    They actually love it! Truly weird cosmic tastes!
+                </div>
+            `;
+            j4Burgers += 1;
+            j4Tips += 40;
+            j4UpdateScore();
+        }
+
+        function j4UpdateScore() {
+            document.getElementById('j4-count').innerText = j4Burgers;
+            document.getElementById('j4-pay').innerText = `$${j4Tips}`;
+            
+            if (j4Tips >= 100) {
+                document.getElementById('j4-controls').innerHTML = `
+                    <button class="btn" onclick="completeJobOnBoard(4, j4Tips)">Close Kitchen Kitchen Board</button>
+                `;
+            } else {
+                document.getElementById('j4-controls').innerHTML = `
+                    <button class="btn" onclick="j4NextOrder()">Accept Next Order 🛎️</button>
+                `;
+            }
+        }
+
+
+        // --- ENGINE ENDGAME / TROPHY OVERVIEW ---
+        function triggerGameOver() {
+            showScreen('screen-gameover');
+            
+            if (totalPlayers === 2) {
+                if (p1Bucks > p2Bucks) {
+                    document.getElementById('winner-announcement').innerText = "🥇 PLAYER 1 WINS THE GIANT GOLDEN TROPHY!";
+                } else if (p2Bucks > p1Bucks) {
+                    document.getElementById('winner-announcement').innerText = "🥇 PLAYER 2 WINS THE GIANT GOLDEN TROPHY!";
+                } else {
+                    document.getElementById('winner-announcement').innerText = "🤝 IT'S A WOBBLY DRAW! Both split the trophy!";
+                }
+            } else {
+                document.getElementById('winner-announcement').innerText = "🥇 YOU RECLAIMED THE ULTIMATE WOBBLY SPACE TROPHY!";
+            }
+        }
+
+
+        // --- REWARDS UPGRADE SHOP ---
+        function goToShop() {
+            showScreen('screen-shop');
+            renderShopButtons();
+        }
+
+        function renderShopButtons() {
+            // Determine active pool funds based on solo or dynamic player 1 metrics
+            let workingWallet = p1Bucks;
+            document.getElementById('shop-wallet').innerText = `$${workingWallet}`;
+
+            // Button item 1 validation loop
+            if (p1Inventory.item1) {
+                document.getElementById('shop-btn-item1').innerHTML = `<span class="owned-badge">🛍️ UNLOCKED / EQUIPPED</span>`;
+            } else {
+                document.getElementById('shop-btn-item1').innerHTML = `<button class="btn" onclick="buyItem('item1', 100)">Buy Costume</button>`;
+            }
+
+            // Button item 2 validation loop
+            if (p1Inventory.item2) {
+                document.getElementById('shop-btn-item2').innerHTML = `<span class="owned-badge">🛍️ UNLOCKED / EQUIPPED</span>`;
+            } else {
+                document.getElementById('shop-btn-item2').innerHTML = `<button class="btn" onclick="buyItem('item2', 200)">Buy Hyper-Drive</button>`;
+            }
+
+            // Button item 3 validation loop
+            if (p1Inventory.item3) {
+                document.getElementById('shop-btn-item3').innerHTML = `<span class="owned-badge">🛍️ UNLOCKED / EQUIPPED</span>`;
+            } else {
+                document.getElementById('shop-btn-item3').innerHTML = `<button class="btn" onclick="buyItem('item3', 150)">Buy Plasma Board</button>`;
+            }
+        }
+
+        function buyItem(itemId, cost) {
+            if (p1Bucks >= cost) {
+                p1Bucks -= cost;
+                p1Inventory[itemId] = true;
+                renderShopButtons();
+            } else {
+                alert("Not enough Wobbly Bucks! Work harder on your next space flight shift!");
+            }
+        }
+
+        function resetWholeGame() {
+            showScreen('screen-title');
+        }
     </script>
 </body>
 </html>
