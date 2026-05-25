@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wobbly Life: Space Edition (Keyboard Edition)</title>
+    <title>Wobbly Life: Space Edition (Touch & Key Edition)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -85,6 +85,7 @@
             display: block;
             margin: 0 auto;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+            cursor: pointer;
         }
 
         .controls-hint {
@@ -123,6 +124,7 @@
             border-radius: 12px;
             padding: 15px;
             cursor: pointer;
+            pointer-events: auto; /* Guarantees tap registration */
         }
         .job-card:hover:not(.done) { border-color: #ffdf00; background: rgba(255,255,255,0.1); }
         .job-card.done { border-color: #4caf50; opacity: 0.6; cursor: not-allowed; }
@@ -137,7 +139,7 @@
     <div id="screen-title" class="screen active">
         <h1>WOBBLY LIFE:<br>SPACE FLIGHT EDITION</h1>
         <div style="font-size: 80px; margin: 20px; animation: wobble 2s infinite alternate;">🛸</div>
-        <p>Use your keyboard to pilot your ship, dock with computer modules, and beat high scores!</p>
+        <p>Use your keyboard to pilot your ship, click/tap the flashing computer, and beat jobs!</p>
         <button class="btn" onclick="startGame(1)">1 Player Mode</button>
         <button class="btn" onclick="startGame(2)">2 Player Mode</button>
     </div>
@@ -147,28 +149,28 @@
         <div class="hud">
             <div>💰 P1 Wallet: <span id="world-p1-bucks" class="wobbly-bucks">$0</span></div>
             <div id="world-p2-hud" style="display:none;">💰 P2 Wallet: <span id="world-p2-bucks" class="wobbly-bucks">$0</span></div>
-            <div style="color: #ffdf00;">⚠️ Fly to the <span style="color:#00ffd8; font-weight:bold;">FLASHING COMPUTER</span> to grab a job!</div>
+            <div style="color: #ffdf00;">⚠️ Fly or <span style="color:#00ffd8; font-weight:bold;">TAP THE FLASHING COMPUTER</span> to grab a job!</div>
         </div>
 
         <canvas id="worldCanvas" width="800" height="400"></canvas>
-        <div class="controls-hint">⌨️ <b>Controls:</b> Player 1 uses <b>Arrow Keys</b>. Player 2 uses <b>W, A, S, D Keys</b>.</div>
+        <div class="controls-hint">⌨️ Controls: Use Arrow Keys / WASD, or click anywhere inside the screen to trigger actions!</div>
 
         <div id="job-popup">
             <h3>🖥️ Spaceship Central Job Board</h3>
-            <p>Fly close to select your mission payout challenge:</p>
+            <p>Select your mission payout challenge:</p>
             <div class="job-grid">
-                <div id="btn-j1" class="job-card" onclick="launchMiniGame(1)">
+                <div id="btn-j1" class="job-card" onclick="launchMiniGame(1); event.stopPropagation();">
                     <span style="font-size:2rem;">🛹</span>
                     <h4>Hoverboard Luggage Balancer</h4>
                     <span id="st-j1" style="color:#00ffd8;">READY - $150</span>
                 </div>
-                <div id="btn-j2" class="job-card" onclick="launchMiniGame(2)">
+                <div id="btn-j2" class="job-card" onclick="launchMiniGame(2); event.stopPropagation();">
                     <span style="font-size:2rem;">☄️</span>
                     <h4>Rocket Asteroid Field Defense</h4>
                     <span id="st-j2" style="color:#00ffd8;">READY - $200</span>
                 </div>
             </div>
-            <button class="btn" style="background:#f44336; box-shadow: 0 5px 0 #9c27b0;" onclick="closeJobBoard()">Exit Computer Terminal</button>
+            <button class="btn" style="background:#f44336; box-shadow: 0 5px 0 #9c27b0;" onclick="closeJobBoard(); event.stopPropagation();">Exit Computer Terminal</button>
         </div>
     </div>
 
@@ -179,47 +181,4 @@
             <div>Score / Progress: <span id="game-score" style="color:#ffdf00;">0</span></div>
         </div>
 
-        <canvas id="gameCanvas" width="800" height="350"></canvas>
-        <div id="game-instructions" class="controls-hint">Controls loading...</div>
-    </div>
-
-    <div id="screen-gameover" class="screen">
-        <h1>🏆 GRAND CHAMPIONSHIP BANNER 🏆</h1>
-        <div style="font-size: 100px; margin: 15px;">🏆</div>
-        <h2 id="winner-text">Player 1 Wins!</h2>
-        
-        <div class="hud" style="max-width: 400px; margin: 10px auto;">
-            <div>Player 1 Total: <span id="end-p1" class="wobbly-bucks">$0</span></div>
-            <div id="end-p2-wrap">Player 2 Total: <span id="end-p2" class="wobbly-bucks">$0</span></div>
-        </div>
-        <button class="btn" onclick="openShop()">Enter Rewards Outpost 🛍️</button>
-    </div>
-
-    <div id="screen-shop" class="screen">
-        <h2>🛍️ Space Customization Outpost</h2>
-        <div class="hud" style="max-width:300px; margin: 0 auto 15px auto;">
-            <div>Your Cash: <span id="shop-cash" class="wobbly-bucks">$0</span></div>
-        </div>
-        <div class="shop-grid">
-            <div class="shop-item"><div>👽</div><h4>Alien Hat</h4><p>$50</p><button class="btn" onclick="buy(50)">Buy</button></div>
-            <div class="shop-item"><div>🔥</div><h4>Neon Thrusters</h4><p>$100</p><button class="btn" onclick="buy(100)">Buy</button></div>
-            <div class="shop-item"><div>👑</div><h4>Gold Suit</h4><p>$150</p><button class="btn" onclick="buy(150)">Buy</button></div>
-        </div>
-        <button class="btn" style="background:#2196f3;" onclick="resetAll()">Play Again 🔄</button>
-    </div>
-
-    <script>
-        // Game Engine Variables
-        let numPlayers = 1;
-        let p1Score = 0, p2Score = 0;
-        let currentActiveGame = 0;
-        let jobList = { 1: false, 2: false };
-        let keys = {};
-
-        // Canvas Setup
-        const worldCanvas = document.getElementById('worldCanvas');
-        const worldCtx = worldCanvas.getContext('2d');
-        const gameCanvas = document.getElementById('gameCanvas');
-        const gameCtx = gameCanvas.getContext('2d');
-
-        // Main World Coordinates
+        <canvas id="game
