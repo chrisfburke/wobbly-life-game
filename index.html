@@ -11,7 +11,6 @@
             padding: 0;
             font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
             user-select: none;
-            touch-action: none;
         }
 
         body {
@@ -28,7 +27,7 @@
             display: none;
             width: 100%;
             max-width: 850px;
-            padding: 25px;
+            padding: 20px;
             background: rgba(20, 15, 40, 0.95);
             border: 4px solid #3d2f75;
             border-radius: 25px;
@@ -42,25 +41,25 @@
         }
 
         h1 {
-            font-size: 2.8rem;
+            font-size: 2.5rem;
             color: #ffdf00;
             text-shadow: 3px 3px 0px #ff5722;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
-        h2 { color: #00ffd8; margin-bottom: 15px; font-size: 2rem; }
+        h2 { color: #00ffd8; margin-bottom: 10px; font-size: 1.8rem; }
 
         .btn {
             background: linear-gradient(to bottom, #ffeb3b, #ff9800);
             border: 3px solid #ffffff;
             border-radius: 15px;
             color: #000000;
-            padding: 15px 32px;
-            font-size: 1.3rem;
+            padding: 12px 28px;
+            font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 5px 0 #b36b00;
-            margin: 12px;
+            margin: 8px;
             display: inline-block;
             transition: transform 0.1s;
         }
@@ -71,11 +70,11 @@
             display: flex;
             justify-content: space-around;
             background: rgba(0, 0, 0, 0.5);
-            padding: 12px;
+            padding: 10px;
             border-radius: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             border: 2px dashed #3d2f75;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
         .wobbly-bucks { color: #4caf50; font-weight: bold; }
@@ -93,13 +92,36 @@
 
         .controls-hint {
             background: rgba(255, 255, 255, 0.05);
-            padding: 10px;
+            padding: 8px;
             border-radius: 10px;
             margin-top: 10px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: #ccc;
             font-weight: bold;
         }
+
+        /* --- DESKTOP & MOBILE NAVIGATION COMPONENT --- */
+        .dpad-container {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        .dpad-btn {
+            background: #3d2f75;
+            border: 2px solid #fff;
+            color: #fff;
+            font-size: 1.3rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        .dpad-btn:active { background: #00ffd8; color: #000; }
 
         #job-popup {
             display: none;
@@ -151,8 +173,8 @@
 
     <div id="screen-title" class="screen active">
         <h1>WOBBLY LIFE:<br>SPACE FLIGHT EDITION</h1>
-        <div style="font-size: 70px; margin: 15px; text-shadow: 0 0 10px #ffdf00;">🛸</div>
-        <p style="margin-bottom: 20px; font-size: 1.2rem;">Fly your ship using Keyboard Arrow Keys OR click & hold down anywhere on the map grid to steer!</p>
+        <div style="font-size: 70px; margin: 15px;">🛸</div>
+        <p style="margin-bottom: 20px; font-size: 1.2rem;">Fly your ship using Keyboard Arrow Keys OR tap the direction pad below the screen!</p>
         <button class="btn" onclick="startGame(1)">1 Player Mode</button>
         <button class="btn" onclick="startGame(2)">2 Player Mode</button>
     </div>
@@ -166,7 +188,16 @@
         </div>
 
         <canvas id="worldCanvas" width="800" height="400"></canvas>
-        <div class="controls-hint">⌨️ Computer: Use Arrows/WASD. 📱 Mobile: Hold down and drag inside the map to pilot ship!</div>
+        
+        <div class="dpad-container" id="world-dpad">
+            <button class="dpad-btn" onmousedown="forceMove('left')" ontouchstart="forceMove('left')">◀</button>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <button class="dpad-btn" onmousedown="forceMove('up')" ontouchstart="forceMove('up')">▲</button>
+                <button class="dpad-btn" onmousedown="forceMove('down')" ontouchstart="forceMove('down')">▼</button>
+            </div>
+            <button class="dpad-btn" onmousedown="forceMove('right')" ontouchstart="forceMove('right')">▶</button>
+        </div>
+        <div class="controls-hint">⌨️ Arrows/WASD, click/hold map canvas, or tap the screen arrow buttons to steer!</div>
 
         <div id="job-popup">
             <h3>🖥️ Spaceship Central Job Board</h3>
@@ -207,6 +238,12 @@
         <div style="position: relative;">
             <div id="freeze-ui" class="frozen-alert">🧊 SLIPPED! FROZEN FOR 5 SECONDS!</div>
             <canvas id="gameCanvas" width="800" height="350"></canvas>
+        </div>
+        
+        <div class="dpad-container" id="game-dpad" style="display:none;">
+            <button class="dpad-btn" onmousedown="forceGameMove('left')" ontouchstart="forceGameMove('left')">◀</button>
+            <button class="dpad-btn" id="game-shoot-btn" onmousedown="forceGameMove('shoot')" ontouchstart="forceGameMove('shoot')" style="width:80px; background:#ff9800;">FIRE 🚀</button>
+            <button class="dpad-btn" onmousedown="forceGameMove('right')" ontouchstart="forceGameMove('right')">▶</button>
         </div>
         <div id="game-instructions" class="controls-hint">Controls loading...</div>
     </div>
@@ -258,8 +295,9 @@
         let p2Ship = { x: 100, y: 250, size: 25, color: '#e91e63', speed: 4 };
         let computerTerminal = { x: 650, y: 170, width: 65, height: 65, pulse: 0 };
 
-        document.addEventListener('keydown', (e) => keys[e.key] = true);
-        document.addEventListener('keyup', (e) => keys[e.key] = false);
+        // Global Page-Level Document Listeners Override Window Blur Drops
+        document.addEventListener('keydown', (e) => { keys[e.key] = true; });
+        document.addEventListener('keyup', (e) => { keys[e.key] = false; });
 
         function trackCanvasInput(canvas, e) {
             const rect = canvas.getBoundingClientRect();
@@ -269,7 +307,7 @@
             pointerTargetY = (clientY - rect.top) * (canvas.height / rect.height);
         }
 
-        // 🚀 RESOLVED: Pointer tracking rules are restricted strictly to canvas layouts to protect button elements
+        // Dedicated canvas boundary mouse/touch wrappers protect system components
         worldCanvas.addEventListener('mousedown', (e) => { isPointerDown = true; trackCanvasInput(worldCanvas, e); });
         worldCanvas.addEventListener('mousemove', (e) => { if(isPointerDown) trackCanvasInput(worldCanvas, e); });
         worldCanvas.addEventListener('mouseup', () => isPointerDown = false);
@@ -285,6 +323,20 @@
         gameCanvas.addEventListener('touchstart', (e) => { isPointerDown = true; trackCanvasInput(gameCanvas, e); });
         gameCanvas.addEventListener('touchmove', (e) => { if(isPointerDown) trackCanvasInput(gameCanvas, e); });
         gameCanvas.addEventListener('touchend', () => isPointerDown = false);
+
+        // Fail-safe manual tracking variables injection overrides
+        function forceMove(dir) {
+            if(dir === 'up') p1Ship.y -= 15;
+            if(dir === 'down') p1Ship.y += 15;
+            if(dir === 'left') p1Ship.x -= 15;
+            if(dir === 'right') p1Ship.x += 15;
+        }
+
+        function forceGameMove(action) {
+            if(action === 'left') elementX = Math.max(20, elementX - 25);
+            if(action === 'right') elementX = Math.min(gameCanvas.width - 50, elementX + 25);
+            if(action === 'shoot') lasers.push({ x: elementX + 18, y: 280, speed: 8 });
+        }
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -418,24 +470,32 @@
             keys = {}; 
             showScreen('screen-minigame');
 
+            // Toggle active interface controls button configurations matching current job ID parameters
+            if (id === 1 || id === 3) {
+                document.getElementById('game-shoot-btn').style.display = 'none';
+            } else {
+                document.getElementById('game-shoot-btn').style.display = 'block';
+            }
+            document.getElementById('game-dpad').style.display = 'flex';
+
             if (id === 1) {
                 document.getElementById('game-title').innerText = "🛹 Hoverboard Luggage Balancer";
-                document.getElementById('game-instructions').innerHTML = "⌨ Left/Right Arrows. 📱 Hold finger on Left/Right canvas window to balance!";
+                document.getElementById('game-instructions').innerHTML = "⌨ Arrows. 📱 Hold Left/Right screen sides OR touch the control arrows beneath the map!";
                 gameTimeLeft = 15; luggageAngle = 0;
             } else if (id === 2) {
                 document.getElementById('game-title').innerText = "☄ Rocket Ship Asteroid Shooter";
-                document.getElementById('game-instructions').innerHTML = "⌨ Left/Right Arrows + Space to fire. 📱 Hold down to slide ship!";
+                document.getElementById('game-instructions').innerHTML = "⌨ Arrows + Space. 📱 Drag screen or use control board panel keys!";
                 gameTimeLeft = 15; elementX = 400; asteroids = []; lasers = [];
             } else if (id === 3) {
                 document.getElementById('game-title').innerText = "🧼 Zero-Gravity Slime Scrubbing";
-                document.getElementById('game-instructions').innerHTML = "⌨ Tap Left/Right Arrows. 📱 Drag finger directly across the screen!";
+                document.getElementById('game-instructions').innerHTML = "⌨ Tap Left/Right Arrows. 📱 Drag finger or click direction pad loops!";
                 gameTimeLeft = 15; cleanPercentage = 0; isFrozen = false;
                 document.getElementById('freeze-ui').style.display = 'none';
                 itemsArr = [];
                 for(let i=0; i<8; i++) itemsArr.push({x: 100 + i*80, y: 100 + Math.random()*120, size: 25, clean: false});
             } else if (id === 4) {
                 document.getElementById('game-title').innerText = "🍔 Zero-G Alien Burger Chef";
-                document.getElementById('game-instructions').innerHTML = "⌨ Use Arrow Keys. 📱 Slide tray to grab the floating buns!";
+                document.getElementById('game-instructions').innerHTML = "⌨ Use Arrow Keys. 📱 Slide tray to grab floating buns!";
                 gameTimeLeft = 20; elementX = 400; itemsArr = [];
             }
 
@@ -651,9 +711,10 @@
             cardStatus.style.color = completedSuccessfully ? "#4caf50" : "#f44336";
             cardWrapper.classList.add('done');
 
-            // ✅ HARD OVERRIDE: Wipes tracking vectors clean to guarantee arrow keys work immediately
+            // Force clear holds to guarantee map commands respond immediately
             isPointerDown = false;
             keys = {}; 
+            document.getElementById('game-dpad').style.display = 'none';
 
             if (jobList[1] && jobList[2] && jobList[3] && jobList[4]) {
                 document.getElementById('end-p1').innerText = `$${p1Score}`;
