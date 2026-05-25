@@ -197,7 +197,7 @@
             </div>
             <button class="dpad-btn" onmousedown="forceMove('right')" ontouchstart="forceMove('right')">▶</button>
         </div>
-        <div class="controls-hint">控制方法：方向键、WASD、长按屏幕或者点击辅助方向盘都可以控制！</div>
+        <div class="controls-hint">⌨️ Controls: Use Arrow Keys / WASD, click & hold the map canvas, or tap the D-Pad buttons below!</div>
 
         <div id="job-popup">
             <h3>🖥️ Spaceship Central Job Board</h3>
@@ -466,7 +466,6 @@
             isPointerDown = false;
             keys = {}; 
             
-            // 🚀 SHUT DOWN THE WORLD ENGINE LOOP IMMEDIATELY
             if (worldLoopId) cancelAnimationFrame(worldLoopId);
             
             showScreen('screen-minigame');
@@ -593,7 +592,7 @@
                                 asteroids.splice(i, 1);
                                 lasers.splice(j, 1);
                                 miniScore++;
-                                document.getElementById('game-score').innerText = `Asteroids Blasted: ${miniScore}`;
+                                document.getElementById('game-score').innerText = `Asteroids Hit: ${miniScore}`;
                                 break;
                             }
                         }
@@ -694,7 +693,6 @@
         function endMiniGame(completedSuccessfully) {
             clearInterval(gameTimer);
             
-            // 🚀 HARD ENGINE SHUT-DOWN SEQUENCE: Forcefully stop the active mini-game drawing loop
             if (gameLoopId) cancelAnimationFrame(gameLoopId);
             
             let prizeMoney = 0;
@@ -727,8 +725,6 @@
             } else {
                 updateWallets();
                 showScreen('screen-world');
-                
-                // 🚀 SAFELY REBOOT A SINGLE WORLD MAP INSTANCE
                 worldLoop();
             }
         }
